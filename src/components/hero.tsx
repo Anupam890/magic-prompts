@@ -44,13 +44,12 @@ export function Hero() {
           </div>
 
           <h1 className="font-display text-[clamp(2rem,7vw,4.5rem)] leading-[0.98] tracking-tighter font-medium text-white">
-            Discover Premium <br className="hidden sm:block" />
+            Discover Nano Banana & <br className="hidden sm:block" />
             <span className="text-gradient-aurora">AI Image Prompts</span>
           </h1>
 
           <p className="mt-4 md:mt-6 max-w-xl text-sm md:text-base text-muted-foreground leading-relaxed">
-            Explore thousands of professionally crafted prompts for ChatGPT Images, Gemini,
-            Midjourney, Flux, Leonardo AI, Ideogram, Stable Diffusion, Adobe Firefly, and more.
+            Explore thousands of professionally crafted Nano Banana prompts, ChatGPT DALL-E 3, Midjourney v6, Flux, Leonardo AI, Ideogram, and Stable Diffusion prompts.
           </p>
 
           <div className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-3">

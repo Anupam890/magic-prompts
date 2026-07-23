@@ -19,6 +19,24 @@ const SLUG_TO_CATEGORY: Record<string, string> = {
   "visual-effects": "Visual Effects",
 };
 
+export async function generateMetadata({ params }: PageProps) {
+  const resolvedParams = await params;
+  const categorySlug = resolvedParams.category?.[0] || "all";
+  const categoryName = SLUG_TO_CATEGORY[categorySlug] || "AI Image Generation";
+
+  return {
+    title: `${categoryName} Nano Banana Prompts — AI Image Generation Library`,
+    description: `Explore top-rated ${categoryName} Nano Banana prompts, ChatGPT DALL-E 3 triggers, and Midjourney presets for photorealistic AI rendering.`,
+    keywords: [
+      `${categoryName} prompts`,
+      "Nano Banana prompts",
+      "ChatGPT AI image prompts",
+      "Midjourney prompt generator",
+      "Stable Diffusion AI prompts",
+    ],
+  };
+}
+
 export default async function BananaPromptsPage({ params }: PageProps) {
   const resolvedParams = await params;
   const categorySlug = resolvedParams.category?.[0] || "all";

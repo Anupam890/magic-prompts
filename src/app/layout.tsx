@@ -4,19 +4,30 @@ import { AdsterraGlobalLoader } from "@/components/adsterra-global-loader";
 import "../styles.css";
 
 export const metadata: Metadata = {
-  title: "Magic Prompts — Discover. Copy. Create.",
-  description: "The ultimate library of premium AI image prompts.",
-  icons: {
-    icon: "/favicon.ico",
-  },
+  title: "Magic Prompts — Nano Banana Prompts & AI Image Generation Prompts",
+  description: "Discover curated Nano Banana prompts, Midjourney, ChatGPT DALL-E 3, and Stable Diffusion prompts for photorealistic AI image generation.",
+  keywords: [
+    "Nano Banana prompts",
+    "AI image prompts",
+    "ChatGPT image generation prompts",
+    "Midjourney prompts",
+    "DALL-E 3 prompts",
+    "Stable Diffusion prompts",
+    "AI art prompt generator",
+    "photorealistic prompts",
+    "AI prompts library",
+  ],
+  authors: [{ name: "Magic Prompts Team" }],
   openGraph: {
-    title: "Magic Prompts — Discover. Copy. Create.",
-    description: "The ultimate library of premium AI image prompts.",
+    title: "Magic Prompts — Nano Banana Prompts & AI Image Prompts",
+    description: "Explore thousands of high-converting Nano Banana, ChatGPT DALL-E 3, and Midjourney prompts for stunning AI image generation.",
     siteName: "Magic Prompts",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
+    title: "Magic Prompts — Nano Banana Prompts & AI Image Generation Prompts",
+    description: "Curated Nano Banana prompts & ChatGPT DALL-E 3 prompts for creators and designers.",
   },
 };
 
