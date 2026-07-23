@@ -59,8 +59,13 @@ export function useTheme() {
   return context;
 }
 
+import { Toaster } from "@/components/ui/sonner";
+
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider>{children}</ThemeProvider>
+    <ThemeProvider>
+      {children}
+      <Toaster position="top-right" richColors closeButton />
+    </ThemeProvider>
   );
 }

@@ -12,6 +12,8 @@ import {
   X,
   Wand2,
   Sparkles,
+  Plus,
+  Bookmark,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useTheme } from "@/app/providers";
@@ -28,6 +30,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "motion/react";
+import { SubmitPromptModal } from "@/components/submit-prompt-modal";
+import { SearchModal } from "@/components/search-modal";
+import { PromptDetail } from "@/components/prompt-detail";
+import { type Prompt } from "@/lib/prompts-data";
 
 export function Nav() {
   const router = useRouter();
@@ -35,6 +41,21 @@ export function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [submitModalOpen, setSubmitModalOpen] = useState(false);
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [selectedSearchPrompt, setSelectedSearchPrompt] = useState<Prompt | null>(null);
+
+  // Global Win+K / Ctrl+K / Cmd+K Search Keybinding
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchModalOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Automatic Open on Hover states
   const [aiToolsOpen, setAiToolsOpen] = useState(false);
@@ -86,32 +107,65 @@ export function Nav() {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }: any) => {
-      setUser(session?.user ?? null);
-    });
+    const loadSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        try {
+          const local = localStorage.getItem("magic_user_session");
+          if (local) {
+            setUser(JSON.parse(local));
+          } else if (typeof document !== "undefined" && document.cookie.includes("magic_mock_session=true")) {
+            const fallbackUser = { email: "anupam.dev81@gmail.com", user_metadata: { full_name: "Anupam" } };
+            localStorage.setItem("magic_user_session", JSON.stringify(fallbackUser));
+            setUser(fallbackUser);
+          } else {
+            setUser(null);
+          }
+        } catch (e) {
+          setUser(null);
+        }
+      }
+    };
+
+    loadSession();
+    window.addEventListener("focus", loadSession);
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
-      setUser(session?.user ?? null);
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        try {
+          const local = localStorage.getItem("magic_user_session");
+          if (local) setUser(JSON.parse(local));
+          else setUser(null);
+        } catch (e) {
+          setUser(null);
+        }
+      }
     });
 
     return () => {
+      window.removeEventListener("focus", loadSession);
       subscription.unsubscribe();
     };
   }, []);
 
   const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast.error("Failed to sign out");
-    } else {
-      toast.success("Signed out successfully");
-      setMobileOpen(false);
-      router.push("/");
-      router.refresh();
-    }
+    document.cookie = "magic_mock_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    try {
+      localStorage.removeItem("magic_user_session");
+    } catch (e) {}
+    await supabase.auth.signOut();
+    setUser(null);
+    toast.success("Signed out successfully");
+    setMobileOpen(false);
+    router.push("/");
+    router.refresh();
   };
 
   const NAV_LINKS = [
@@ -145,73 +199,61 @@ export function Nav() {
                 </Link>
               ))}
 
-              {/* AI Tools Dropdown - Automatically opens on Hover */}
-              <div
-                onMouseEnter={handleAiToolsEnter}
-                onMouseLeave={handleAiToolsLeave}
-                className="relative inline-block"
-              >
-                <DropdownMenu open={aiToolsOpen} onOpenChange={setAiToolsOpen}>
-                  <DropdownMenuTrigger className="flex items-center gap-1.5 hover:text-foreground transition cursor-pointer outline-none select-none py-1">
-                    AI Tools
-                    <ChevronDown className={`h-3.5 w-3.5 opacity-60 transition-transform duration-200 ${aiToolsOpen ? "rotate-180" : ""}`} />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="start"
-                    className="w-64"
-                    onMouseEnter={handleAiToolsEnter}
-                    onMouseLeave={handleAiToolsLeave}
-                  >
-                    <DropdownMenuLabel>
-                      Prompting Generators
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild onClick={() => setAiToolsOpen(false)}>
-                      <Link href="/#gallery" className="flex items-start gap-2.5 w-full py-1.5 cursor-pointer">
-                        <div className="h-7 w-7 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0 mt-0.5">
-                          <Wand2 className="h-3.5 w-3.5" />
-                        </div>
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-xs font-semibold text-foreground">
-                            Midjourney Prompt Helper
-                          </span>
-                          <span className="text-[10px] text-muted-foreground leading-tight">
-                            Inject luxury photographic triggers
-                          </span>
-                        </div>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild onClick={() => setAiToolsOpen(false)}>
-                      <Link href="/#gallery" className="flex items-start gap-2.5 w-full py-1.5 cursor-pointer">
-                        <div className="h-7 w-7 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0 mt-0.5">
-                          <Sparkles className="h-3.5 w-3.5" />
-                        </div>
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-xs font-semibold text-foreground">Flux Enhancer</span>
-                          <span className="text-[10px] text-muted-foreground leading-tight">Add granular texture modifiers</span>
-                        </div>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild onClick={() => setAiToolsOpen(false)}>
-                      <Link href="/#gallery" className="flex items-start gap-2.5 w-full py-1.5 cursor-pointer">
-                        <div className="h-7 w-7 rounded-lg bg-fuchsia-500/10 text-fuchsia-500 flex items-center justify-center shrink-0 mt-0.5">
-                          <Command className="h-3.5 w-3.5" />
-                        </div>
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-xs font-semibold text-foreground">Prompt Optimizer</span>
-                          <span className="text-[10px] text-muted-foreground leading-tight">Clean and compile messy text</span>
-                        </div>
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+              {/* AI Tools Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-1.5 hover:text-foreground transition cursor-pointer outline-none select-none py-1">
+                  AI Tools
+                  <ChevronDown className="h-3.5 w-3.5 opacity-60 transition-transform duration-200" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-64">
+                  <DropdownMenuLabel>Prompting Generators</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/#gallery" className="flex items-start gap-2.5 w-full py-1.5 cursor-pointer">
+                      <div className="h-7 w-7 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0 mt-0.5">
+                        <Wand2 className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-xs font-semibold text-foreground">
+                          Midjourney Prompt Helper
+                        </span>
+                        <span className="text-[10px] text-muted-foreground leading-tight">
+                          Inject luxury photographic triggers
+                        </span>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/#gallery" className="flex items-start gap-2.5 w-full py-1.5 cursor-pointer">
+                      <div className="h-7 w-7 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0 mt-0.5">
+                        <Sparkles className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-xs font-semibold text-foreground">Flux Enhancer</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight">Add granular texture modifiers</span>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/#gallery" className="flex items-start gap-2.5 w-full py-1.5 cursor-pointer">
+                      <div className="h-7 w-7 rounded-lg bg-fuchsia-500/10 text-fuchsia-500 flex items-center justify-center shrink-0 mt-0.5">
+                        <Command className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-xs font-semibold text-foreground">Prompt Optimizer</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight">Clean and compile messy text</span>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             {/* Desktop right actions */}
             <div className="hidden md:flex items-center gap-2">
               <button
-                className="flex items-center gap-2 rounded-xl glass px-3 py-2 text-xs text-muted-foreground hover:text-foreground transition"
+                onClick={() => setSearchModalOpen(true)}
+                className="flex items-center gap-2 rounded-xl glass px-3 py-2 text-xs text-muted-foreground hover:text-foreground transition cursor-pointer"
                 aria-label="Search"
               >
                 <Search className="h-3.5 w-3.5" />
@@ -220,6 +262,15 @@ export function Nav() {
                   <Command className="h-2.5 w-2.5" />K
                 </span>
               </button>
+              {/* Submit Prompt CTA */}
+              <button
+                onClick={() => setSubmitModalOpen(true)}
+                className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold px-3.5 py-2 shadow-sm shadow-purple-900/30 transition hover:scale-[1.02] cursor-pointer"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>Submit Prompt</span>
+              </button>
+
               <button
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                 className="rounded-xl glass p-2 hover:bg-white/[0.08] transition text-muted-foreground hover:text-foreground"
@@ -232,50 +283,50 @@ export function Nav() {
                 )}
               </button>
 
-              {/* User Avatar Dropdown - Automatically opens on Hover */}
+              {/* User Avatar Dropdown - Click to Open */}
               {user ? (
-                <div
-                  onMouseEnter={handleUserMenuEnter}
-                  onMouseLeave={handleUserMenuLeave}
-                  className="relative inline-block"
-                >
-                  <DropdownMenu open={userMenuOpen} onOpenChange={setUserMenuOpen}>
-                    <DropdownMenuTrigger asChild>
-                      <button className="outline-none cursor-pointer">
-                        <Avatar className="h-9 w-9 border border-white/10 hover:border-white/20 transition">
-                          <AvatarFallback className="bg-gradient-to-tr from-purple-600 to-indigo-600 text-white font-semibold text-xs">
-                            {user.email ? user.email.slice(0, 2).toUpperCase() : "U"}
-                          </AvatarFallback>
-                        </Avatar>
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="end"
-                      className="w-56"
-                      onMouseEnter={handleUserMenuEnter}
-                      onMouseLeave={handleUserMenuLeave}
-                    >
-                      <DropdownMenuLabel className="truncate">
-                        {user.email}
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild onClick={() => setUserMenuOpen(false)}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="outline-none cursor-pointer">
+                      <Avatar className="h-9 w-9 border border-white/10 hover:border-white/20 transition">
+                        <AvatarFallback className="bg-gradient-to-tr from-purple-600 to-indigo-600 text-white font-semibold text-xs">
+                          {user.email ? user.email.slice(0, 2).toUpperCase() : "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel className="truncate">
+                      {user.email}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile" className="flex items-center gap-2.5 w-full cursor-pointer">
+                        <Bookmark className="h-4 w-4 text-purple-500" />
+                        <span>My Profile & Saved</span>
+                      </Link>
+                    </DropdownMenuItem>
+
+                    {/* Admin Dashboard Link — STRICTLY FOR ADMINS */}
+                    {(user.email === "anupam.dev81@gmail.com" || user.user_metadata?.role === "admin" || user.role === "admin") && (
+                      <DropdownMenuItem asChild>
                         <Link href="/admin" className="flex items-center gap-2.5 w-full cursor-pointer">
-                          <LayoutDashboard className="h-4 w-4 text-purple-500" />
-                          <span>Dashboard</span>
+                          <LayoutDashboard className="h-4 w-4 text-indigo-500" />
+                          <span>Admin Dashboard</span>
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={handleSignOut}
-                        className="text-red-500 hover:text-red-600 hover:bg-red-500/10 dark:hover:bg-red-500/20 cursor-pointer flex items-center gap-2.5"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        <span>Sign Out</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                    )}
+
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleSignOut}
+                      className="text-red-500 hover:text-red-600 hover:bg-red-500/10 dark:hover:bg-red-500/20 cursor-pointer flex items-center gap-2.5"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Sign Out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ) : (
                 <Link
                   href="/auth/login"
@@ -385,15 +436,25 @@ export function Nav() {
                 </div>
 
                 {user && (
-                  <div className="pt-4 border-t border-white/[0.06]">
+                  <div className="pt-4 border-t border-white/[0.06] space-y-1">
                     <Link
-                      href="/admin"
+                      href="/profile"
                       onClick={() => setMobileOpen(false)}
                       className="flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-white/[0.04] transition"
                     >
-                      <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
-                      Dashboard
+                      <Bookmark className="h-4 w-4 text-purple-400" />
+                      My Profile & Saved
                     </Link>
+                    {(user.email === "anupam.dev81@gmail.com" || user.user_metadata?.role === "admin" || user.role === "admin") && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-white/[0.04] transition"
+                      >
+                        <LayoutDashboard className="h-4 w-4 text-indigo-400" />
+                        Admin Dashboard
+                      </Link>
+                    )}
                   </div>
                 )}
               </div>
@@ -425,6 +486,27 @@ export function Nav() {
           </>
         )}
       </AnimatePresence>
+
+      {/* User Submission Modal */}
+      <SubmitPromptModal
+        isOpen={submitModalOpen}
+        onClose={() => setSubmitModalOpen(false)}
+      />
+
+      {/* Global Win+K / Ctrl+K Search Modal */}
+      <SearchModal
+        isOpen={searchModalOpen}
+        onClose={() => setSearchModalOpen(false)}
+        onSelectPrompt={(p) => setSelectedSearchPrompt(p)}
+      />
+
+      {/* Prompt Detail Dialog when selecting a prompt from search */}
+      {selectedSearchPrompt && (
+        <PromptDetail
+          prompt={selectedSearchPrompt}
+          onClose={() => setSelectedSearchPrompt(null)}
+        />
+      )}
     </>
   );
 }

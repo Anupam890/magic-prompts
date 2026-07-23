@@ -28,6 +28,7 @@ export type Prompt = {
   views: number;
   likes: number;
   copies: number;
+  status?: "approved" | "pending" | "rejected";
 };
 
 export const CATEGORIES = [
@@ -381,10 +382,7 @@ export async function fetchPromptsPage(params: {
   const { page, pageSize = 12, category, model, sort } = params;
 
   try {
-    let query = supabase
-      .from("prompts")
-      .select("*", { count: "exact" });
-
+    let query = supabase.from("prompts").select("*", { count: "exact" });
     if (category !== "All") {
       query = query.eq("category", category);
     }
@@ -429,7 +427,7 @@ export async function fetchPromptsPage(params: {
       }));
 
       const nextPage = start + pageSize < (count || 0) ? page + 1 : null;
-      return { items, nextPage, total: count || 0 };
+      return { items: applyRealtimeMetrics(items), nextPage, total: count || 0 };
     }
   } catch (e) {
     console.warn("Database query failed or tables missing. Falling back to local static presets...", e);
@@ -461,10 +459,48 @@ export async function fetchPromptsPage(params: {
 
   await new Promise((r) => setTimeout(r, 550));
 
-  return { items, nextPage, total: list.length };
+  return { items: applyRealtimeMetrics(items), nextPage, total: list.length };
+}
+
+export function getLocalMetrics(): Record<string, { views: number; likes: number; copies: number }> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem("magic_prompt_realtime_metrics");
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+export function saveLocalMetric(promptId: string, type: "views" | "likes" | "copies") {
+  if (typeof window === "undefined") return;
+  try {
+    const current = getLocalMetrics();
+    const promptMetrics = current[promptId] || { views: 0, likes: 0, copies: 0 };
+    promptMetrics[type] = (promptMetrics[type] || 0) + 1;
+    current[promptId] = promptMetrics;
+    localStorage.setItem("magic_prompt_realtime_metrics", JSON.stringify(current));
+  } catch (e) {
+    console.error("Failed to save local metric:", e);
+  }
+}
+
+export function applyRealtimeMetrics(prompts: Prompt[]): Prompt[] {
+  const metrics = getLocalMetrics();
+  return prompts.map((p) => {
+    const m = metrics[p.id];
+    if (!m) return p;
+    return {
+      ...p,
+      views: (p.views || 0) + (m.views || 0),
+      likes: (p.likes || 0) + (m.likes || 0),
+      copies: (p.copies || 0) + (m.copies || 0),
+    };
+  });
 }
 
 export async function incrementPromptViews(promptId: string) {
+  saveLocalMetric(promptId, "views");
   try {
     const { data } = await supabase
       .from("prompts")
@@ -483,6 +519,7 @@ export async function incrementPromptViews(promptId: string) {
 }
 
 export async function incrementPromptLikes(promptId: string) {
+  saveLocalMetric(promptId, "likes");
   try {
     const { data } = await supabase
       .from("prompts")
@@ -501,6 +538,7 @@ export async function incrementPromptLikes(promptId: string) {
 }
 
 export async function incrementPromptCopies(promptId: string) {
+  saveLocalMetric(promptId, "copies");
   try {
     const { data } = await supabase
       .from("prompts")
@@ -516,4 +554,272 @@ export async function incrementPromptCopies(promptId: string) {
   } catch (e) {
     console.error("Failed to increment copies in Supabase:", e);
   }
+}
+
+export async function submitUserPrompt(promptData: {
+  title: string;
+  category: string;
+  model: string;
+  description: string;
+  prompt: string;
+  negative?: string;
+  tags: string[];
+  aspect: string;
+  image: string;
+  ratio?: number;
+}) {
+  const id = `user-${Date.now()}`;
+  const slug = `${promptData.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now().toString().slice(-4)}`;
+
+  const payload = {
+    id,
+    slug,
+    title: promptData.title,
+    category: promptData.category,
+    model: promptData.model,
+    description: promptData.description,
+    prompt: promptData.prompt,
+    negative: promptData.negative || "",
+    tags: promptData.tags,
+    aspect: promptData.aspect,
+    image_url: promptData.image,
+    ratio: promptData.ratio || 1.25,
+    status: "pending",
+  };
+
+  const { error } = await supabase.from("prompts").insert(payload);
+  if (error) {
+    if (error.message?.includes("status") || error.code === "PGRST204") {
+      // Fallback if status column is missing in Supabase schema cache
+      const { status, ...fallbackPayload } = payload;
+      const { error: fallbackErr } = await supabase.from("prompts").insert(fallbackPayload);
+      if (fallbackErr) throw fallbackErr;
+    } else {
+      throw error;
+    }
+  }
+  return id;
+}
+
+export async function getPendingPromptsFromSupabase(): Promise<Prompt[]> {
+  try {
+    const { data, error } = await supabase
+      .from("prompts")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) return [];
+    if (data) {
+      return data
+        .filter((p: any) => p.status === "pending")
+        .map((p: any) => ({
+          id: p.id,
+          slug: p.slug,
+          title: p.title,
+          category: p.category,
+          model: p.model,
+          description: p.description,
+          prompt: p.prompt,
+          negative: p.negative || "",
+          tags: p.tags || [],
+          aspect: p.aspect,
+          image: p.image_url,
+          ratio: p.ratio || 1.0,
+          views: p.views || 0,
+          likes: p.likes || 0,
+          copies: p.copies || 0,
+          status: p.status,
+        }));
+    }
+  } catch (e) {
+    return [];
+  }
+  return [];
+}
+
+export async function approvePromptInSupabase(id: string) {
+  const { error } = await supabase.from("prompts").update({ status: "approved" }).eq("id", id);
+  if (error) throw error;
+}
+
+export async function rejectPromptInSupabase(id: string) {
+  const { error } = await supabase.from("prompts").delete().eq("id", id);
+  if (error) throw error;
+}
+
+// -------------------------------------------------------------
+// USER SAVED PROMPTS & PINTEREST BOARDS HELPERS
+// -------------------------------------------------------------
+
+export function getLocalSavedPromptIds(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem("magic_saved_prompt_ids");
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+export function saveLocalPromptId(id: string): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const current = getLocalSavedPromptIds();
+    const isSaved = current.includes(id);
+    let next: string[];
+    if (isSaved) {
+      next = current.filter((x) => x !== id);
+    } else {
+      next = [...current, id];
+    }
+    localStorage.setItem("magic_saved_prompt_ids", JSON.stringify(next));
+    return !isSaved;
+  } catch (e) {
+    return false;
+  }
+}
+
+export async function getUserSavedPrompts(): Promise<Prompt[]> {
+  const localIds = getLocalSavedPromptIds();
+  const allPrompts = await getAllPromptsFromSupabase();
+  return allPrompts.filter((p) => localIds.includes(p.id));
+}
+
+export interface UserBoard {
+  id: string;
+  name: string;
+  description: string;
+  promptIds: string[];
+  coverUrl?: string;
+  createdAt: string;
+}
+
+const DEFAULT_INITIAL_BOARDS: UserBoard[] = [
+  {
+    id: "board-1",
+    name: "Photorealistic Portraits",
+    description: "Curated hyper-realistic portraits and fashion studio triggers",
+    promptIds: ["p1", "p2", "p5"],
+    coverUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "board-2",
+    name: "Sci-Fi & Cyberpunk",
+    description: "Futuristic neon cities, samurai armor, and anime character concepts",
+    promptIds: ["p3", "p4"],
+    coverUrl: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=800",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "board-3",
+    name: "Luxury & Product Renders",
+    description: "Editorial watches, perfume bottles, and commercial splash photography",
+    promptIds: ["p2", "p6"],
+    coverUrl: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=800",
+    createdAt: new Date().toISOString(),
+  },
+];
+
+export function getUserBoards(): UserBoard[] {
+  if (typeof window === "undefined") return DEFAULT_INITIAL_BOARDS;
+  try {
+    const raw = localStorage.getItem("magic_user_boards");
+    if (!raw) {
+      localStorage.setItem("magic_user_boards", JSON.stringify(DEFAULT_INITIAL_BOARDS));
+      return DEFAULT_INITIAL_BOARDS;
+    }
+    return JSON.parse(raw);
+  } catch (e) {
+    return DEFAULT_INITIAL_BOARDS;
+  }
+}
+
+export function saveUserBoards(boards: UserBoard[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem("magic_user_boards", JSON.stringify(boards));
+  } catch (e) {
+    console.error("Failed to save boards:", e);
+  }
+}
+
+export function createBoard(name: string, description: string, coverUrl?: string): UserBoard {
+  const boards = getUserBoards();
+  const newBoard: UserBoard = {
+    id: `board-${Date.now()}`,
+    name: name.trim(),
+    description: description.trim() || `Curated ${name} collection`,
+    promptIds: [],
+    coverUrl: coverUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800",
+    createdAt: new Date().toISOString(),
+  };
+
+  const updated = [newBoard, ...boards];
+  saveUserBoards(updated);
+  return newBoard;
+}
+
+export function updateBoard(id: string, name: string, description: string): UserBoard | null {
+  const boards = getUserBoards();
+  let updatedBoard: UserBoard | null = null;
+  const next = boards.map((b) => {
+    if (b.id === id) {
+      updatedBoard = { ...b, name: name.trim(), description: description.trim() };
+      return updatedBoard;
+    }
+    return b;
+  });
+  saveUserBoards(next);
+  return updatedBoard;
+}
+
+export function deleteBoard(id: string): UserBoard[] {
+  const boards = getUserBoards();
+  const next = boards.filter((b) => b.id !== id);
+  saveUserBoards(next);
+  return next;
+}
+
+export function addPromptToBoard(boardId: string, promptId: string, promptCover?: string) {
+  const boards = getUserBoards();
+  const next = boards.map((b) => {
+    if (b.id === boardId) {
+      const exists = b.promptIds.includes(promptId);
+      const promptIds = exists ? b.promptIds : [...b.promptIds, promptId];
+      return {
+        ...b,
+        promptIds,
+        coverUrl: promptCover || b.coverUrl,
+      };
+    }
+    return b;
+  });
+  saveUserBoards(next);
+
+  // Also ensure prompt is in global saved prompts
+  saveLocalPromptId(promptId);
+}
+
+export function removePromptFromBoard(boardId: string, promptId: string) {
+  const boards = getUserBoards();
+  const next = boards.map((b) => {
+    if (b.id === boardId) {
+      return {
+        ...b,
+        promptIds: b.promptIds.filter((pId) => pId !== promptId),
+      };
+    }
+    return b;
+  });
+  saveUserBoards(next);
+}
+
+export async function getBoardPrompts(boardId: string): Promise<Prompt[]> {
+  const boards = getUserBoards();
+  const board = boards.find((b) => b.id === boardId);
+  if (!board) return [];
+
+  const allPrompts = await getAllPromptsFromSupabase();
+  return allPrompts.filter((p) => board.promptIds.includes(p.id));
 }

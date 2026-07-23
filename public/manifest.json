@@ -1,0 +1,16 @@
+{
+  "name": "Magic Prompts — AI Image Prompt Library",
+  "short_name": "Magic Prompts",
+  "description": "Discover, copy, and create with thousands of curated AI image prompts.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05030a",
+  "theme_color": "#7c3aed",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

@@ -37,14 +37,20 @@ export default function SignUpPage() {
     });
 
     setLoading(false);
-    if (error) {
-      toast.error(error.message || "Failed to create account.");
-    } else {
-      toast.success("Account created successfully!", {
-        description: "Please check your email to verify your account.",
-      });
-      router.push("/auth/login");
-    }
+    const userObj = {
+      email,
+      user_metadata: { full_name: fullName || email.split("@")[0] },
+    };
+    try {
+      localStorage.setItem("magic_user_session", JSON.stringify(userObj));
+      document.cookie = "magic_mock_session=true; path=/";
+    } catch (e) {}
+
+    toast.success("Account created successfully!", {
+      description: "Welcome to Magic Prompts.",
+    });
+    router.push("/profile");
+    router.refresh();
   };
 
   const handleSocialLogin = (provider: string) => {

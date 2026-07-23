@@ -1,10 +1,65 @@
-import { Sparkles, Github, Twitter, Linkedin } from "lucide-react";
+"use client";
+
+import Link from "next/link";
+import { Github, Twitter, Linkedin, Download } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export function Footer() {
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === "accepted") {
+        toast.success("Thank you for installing Magic Prompts App!");
+      }
+      setDeferredPrompt(null);
+    } else {
+      toast.info("Install Magic Prompts as App", {
+        description: "Click your browser menu (⋮ or ⬆) and select 'Install Magic Prompts' or 'Add to Home Screen'.",
+      });
+    }
+  };
+
   const cols = [
-    { title: "Product", links: ["Gallery", "Categories", "AI Models", "Popular Prompts"] },
-    { title: "Company", links: ["About", "Blog", "Careers", "Contact"] },
-    { title: "Legal", links: ["Privacy Policy", "Terms", "Cookies", "License"] },
+    {
+      title: "Product",
+      links: [
+        { label: "Gallery", href: "/#gallery" },
+        { label: "Categories", href: "/categories" },
+        { label: "AI Models", href: "/#models" },
+        { label: "Popular Prompts", href: "/#gallery" },
+      ],
+    },
+    {
+      title: "Company",
+      links: [
+        { label: "About Us", href: "/about" },
+        { label: "Blog", href: "/about" },
+        { label: "Careers", href: "/about" },
+        { label: "Contact", href: "/about" },
+      ],
+    },
+    {
+      title: "Legal",
+      links: [
+        { label: "Privacy Policy", href: "/about" },
+        { label: "Terms", href: "/about" },
+        { label: "Cookies", href: "/about" },
+        { label: "License", href: "/about" },
+      ],
+    },
   ];
 
   return (
@@ -14,12 +69,6 @@ export function Footer() {
           {/* Brand column */}
           <div className="sm:col-span-2 md:col-span-1">
             <div className="flex items-center gap-2">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-aurora blur-md opacity-70" />
-                <div className="relative flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-aurora">
-                  <Sparkles className="h-4 w-4 text-white" strokeWidth={2.5} />
-                </div>
-              </div>
               <span className="font-display text-lg font-semibold">Magic Prompts</span>
             </div>
             <p className="mt-4 max-w-sm text-sm text-muted-foreground">
@@ -51,13 +100,13 @@ export function Footer() {
               </div>
               <ul className="space-y-2 md:space-y-2.5">
                 {c.links.map((l) => (
-                  <li key={l}>
-                    <a
-                      href="#"
+                  <li key={l.label}>
+                    <Link
+                      href={l.href}
                       className="text-sm text-foreground/80 hover:text-foreground transition"
                     >
-                      {l}
-                    </a>
+                      {l.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -66,9 +115,21 @@ export function Footer() {
         </div>
 
         <div className="mt-10 md:mt-16 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/[0.06] pt-6 md:pt-8">
-          <p className="text-xs text-muted-foreground text-center sm:text-left">
-            © {new Date().getFullYear()} Magic Prompts. Discover. Copy. Create.
-          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+            <p className="text-xs text-muted-foreground">
+              © {new Date().getFullYear()} Magic Prompts. Discover. Copy. Create.
+            </p>
+
+            {/* Install App Button */}
+            <button
+              onClick={handleInstallApp}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-purple-600/20 text-purple-400 hover:bg-purple-600/30 border border-purple-500/30 px-3 py-1.5 text-xs font-semibold transition cursor-pointer"
+            >
+              <Download className="h-3.5 w-3.5" />
+              <span>Install App</span>
+            </button>
+          </div>
+
           <div className="flex items-center gap-2">
             {[Github, Twitter, Linkedin].map((Icon, i) => (
               <a

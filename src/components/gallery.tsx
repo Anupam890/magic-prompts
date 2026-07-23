@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { getModels, fetchPromptsPage, type Prompt, type SortKey } from "@/lib/prompts-data";
 import { PromptCard } from "./prompt-card";
 import { PromptDetail } from "./prompt-detail";
+import { AdsterraAd } from "./adsterra-ad";
 import { Filter, Flame, Clock, Copy, Heart, Loader2, ChevronDown, Check } from "lucide-react";
 import {
   DropdownMenu,
@@ -82,6 +83,7 @@ export function Gallery({ activeCategory }: { activeCategory: string }) {
       })
       .catch((err) => {
         console.error(err);
+        toast.error("Network issue loading live prompts. Loaded offline prompts.");
         if (activeQuery) setIsLoading(false);
       });
 
@@ -216,9 +218,18 @@ export function Gallery({ activeCategory }: { activeCategory: string }) {
           {isLoading &&
             Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={`s-${i}`} index={i} />)}
 
-          {!isLoading && items.map((p, i) => (
-            <PromptCard key={p.id} prompt={p} onOpen={setActive} index={i} />
-          ))}
+          {!isLoading &&
+            items.map((p, i) => (
+              <div key={p.id} className="break-inside-avoid">
+                <PromptCard prompt={p} onOpen={setActive} index={i} />
+                {/* Insert Native Adsterra Banner Every 8 Items */}
+                {i > 0 && i % 8 === 0 && (
+                  <div className="mb-4 break-inside-avoid">
+                    <AdsterraAd type="native" className="my-2" />
+                  </div>
+                )}
+              </div>
+            ))}
 
           {isFetchingNextPage &&
             Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={`sn-${i}`} index={i + 3} />)}

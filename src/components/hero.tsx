@@ -76,22 +76,24 @@ export function Hero() {
             transition={{ duration: 0.9, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="mt-8 md:mt-12 max-w-xl"
           >
-            <div className="relative group">
+            <div className="relative group cursor-pointer" onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}>
               <div className="absolute -inset-px rounded-2xl bg-gradient-aurora opacity-40 blur-md group-focus-within:opacity-80 transition" />
               <div className="relative flex items-center gap-2 md:gap-3 rounded-2xl glass-strong px-3 md:px-4 py-3 md:py-3.5">
                 <Search className="h-4 w-4 text-muted-foreground shrink-0" />
                 <input
                   type="text"
-                  placeholder="Try 'cinematic luxury watch'..."
-                  className="flex-1 min-w-0 bg-transparent text-sm placeholder:text-muted-foreground outline-none"
+                  readOnly
+                  placeholder="Try 'cinematic luxury watch' (Ctrl+K)... cursor-pointer"
+                  className="flex-1 min-w-0 bg-transparent text-sm placeholder:text-muted-foreground outline-none cursor-pointer"
                 />
                 <button
+                  type="button"
                   aria-label="Voice search"
                   className="hidden sm:block rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-white/5 transition"
                 >
                   <Mic className="h-4 w-4" />
                 </button>
-                <button className="rounded-xl bg-gradient-aurora px-3 py-1.5 text-xs font-medium shrink-0">
+                <button type="button" className="rounded-xl bg-gradient-aurora px-3 py-1.5 text-xs font-medium shrink-0 text-white">
                   Search
                 </button>
               </div>
@@ -105,7 +107,8 @@ export function Hero() {
               {trending.map((t) => (
                 <button
                   key={t}
-                  className="rounded-full glass px-2.5 py-1 text-muted-foreground hover:text-foreground transition text-[11px] md:text-xs"
+                  onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}
+                  className="rounded-full glass px-2.5 py-1 text-muted-foreground hover:text-foreground transition text-[11px] md:text-xs cursor-pointer"
                 >
                   {t}
                 </button>

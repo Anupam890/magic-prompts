@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Providers } from "./providers";
+import { AdsterraGlobalLoader } from "@/components/adsterra-global-loader";
 import "../styles.css";
 
 export const metadata: Metadata = {
@@ -33,9 +34,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
           href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&f[]=satoshi@400,500,700&display=swap"
         />
+        <link rel="manifest" href="/manifest.json" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').catch(function(err) {});
+                });
+              }
+            `,
+          }}
+        />
       </head>
       <body className="antialiased bg-background text-foreground">
         <Providers>{children}</Providers>
+        <AdsterraGlobalLoader />
       </body>
     </html>
   );

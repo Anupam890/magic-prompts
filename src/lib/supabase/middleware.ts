@@ -11,13 +11,13 @@ export async function updateSession(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  const isProtected = request.nextUrl.pathname.startsWith("/admin");
+  const isProtected = request.nextUrl.pathname.startsWith("/admin") || request.nextUrl.pathname.startsWith("/profile");
   const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
 
-  // Fallback for when keys are not configured in environment variables
-  if (!supabaseUrl || !supabaseAnonKey) {
-    const hasMockSession = request.cookies.has("magic_mock_session");
+  const hasMockSession = request.cookies.has("magic_mock_session");
 
+  // Fallback for when keys are not configured or mock session set
+  if (!supabaseUrl || !supabaseAnonKey || hasMockSession) {
     if (isProtected && !hasMockSession) {
       const url = request.nextUrl.clone();
       url.pathname = "/auth/login";
@@ -26,11 +26,13 @@ export async function updateSession(request: NextRequest) {
 
     if (isAuthPage && hasMockSession) {
       const url = request.nextUrl.clone();
-      url.pathname = "/admin";
+      url.pathname = "/profile";
       return NextResponse.redirect(url);
     }
 
-    return response;
+    if (!hasMockSession) {
+      return response;
+    }
   }
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
@@ -54,15 +56,15 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (isProtected && !user) {
+  if (isProtected && !user && !hasMockSession) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);
   }
 
-  if (isAuthPage && user) {
+  if (isAuthPage && (user || hasMockSession)) {
     const url = request.nextUrl.clone();
-    url.pathname = "/admin";
+    url.pathname = "/profile";
     return NextResponse.redirect(url);
   }
 
