@@ -38,16 +38,46 @@ export function AdsterraAd({ type = "banner", className = "" }: AdUnitProps) {
   useEffect(() => {
     if (!containerRef.current || !adHtml || !isEnabled) return;
 
-    // Directly inject HTML & script elements into container
     const wrapper = containerRef.current;
-    wrapper.innerHTML = adHtml;
+    wrapper.innerHTML = "";
 
-    const scripts = wrapper.querySelectorAll("script");
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = adHtml;
+
+    const scripts = tempDiv.querySelectorAll("script");
+    if (scripts.length === 0) {
+      wrapper.innerHTML = adHtml;
+      return;
+    }
+
+    // Append non-script elements first
+    Array.from(tempDiv.childNodes).forEach((node) => {
+      if (node.nodeName !== "SCRIPT") {
+        wrapper.appendChild(node.cloneNode(true));
+      }
+    });
+
+    // Execute scripts sequentially
     scripts.forEach((oldScript) => {
       const newScript = document.createElement("script");
-      Array.from(oldScript.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
-      newScript.text = oldScript.text || oldScript.innerHTML;
-      oldScript.parentNode?.replaceChild(newScript, oldScript);
+      Array.from(oldScript.attributes).forEach((attr) => {
+        newScript.setAttribute(attr.name, attr.value);
+      });
+
+      if (oldScript.innerHTML) {
+        // Execute inline script logic (e.g. setting atOptions on window)
+        try {
+          new Function(oldScript.innerHTML)();
+        } catch (err) {
+          console.error("Adsterra inline script error:", err);
+        }
+      }
+
+      if (oldScript.src) {
+        newScript.src = oldScript.src;
+      }
+
+      wrapper.appendChild(newScript);
     });
   }, [adHtml, isEnabled]);
 

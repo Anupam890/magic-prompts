@@ -232,6 +232,7 @@ export default function Admin() {
   const [tags, setTags] = useState("");
   const [aspect, setAspect] = useState("4:5");
   const [imageUrl, setImageUrl] = useState("");
+  const [ratio, setRatio] = useState("1.25");
   const [uploadingImage, setUploadingImage] = useState(false);
   const [isAdminDragging, setIsAdminDragging] = useState(false);
 
