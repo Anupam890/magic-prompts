@@ -17,7 +17,7 @@ export async function updateSession(request: NextRequest) {
   const hasMockSession = request.cookies.has("magic_mock_session");
 
   // Fallback for when keys are not configured or mock session set
-  if (!supabaseUrl || !supabaseAnonKey || hasMockSession) {
+  if (!supabaseUrl || !supabaseAnonKey) {
     if (isProtected && !hasMockSession) {
       const url = request.nextUrl.clone();
       url.pathname = "/auth/login";
@@ -30,9 +30,7 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    if (!hasMockSession) {
-      return response;
-    }
+    return response;
   }
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {

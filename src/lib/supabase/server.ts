@@ -10,7 +10,14 @@ export async function createClient() {
   if (!supabaseUrl || !supabaseAnonKey) {
     // Server-side mock user parser using the cookie set by the browser mock client
     const mockCookie = cookieStore.get("magic_mock_session")?.value;
-    const user = mockCookie ? JSON.parse(decodeURIComponent(mockCookie)) : null;
+    let user = null;
+    if (mockCookie) {
+      try {
+        user = JSON.parse(decodeURIComponent(mockCookie));
+      } catch (e) {
+        user = null;
+      }
+    }
 
     return {
       auth: {
