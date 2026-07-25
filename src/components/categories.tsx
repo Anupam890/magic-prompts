@@ -1,7 +1,6 @@
 import {
   Sparkles,
   ShoppingBag,
-  Aperture,
   User,
   Swords,
   Star,
@@ -17,7 +16,6 @@ import { getCategories, getAllPromptsFromSupabase } from "@/lib/prompts-data";
 const ICONS: Record<string, LucideIcon> = {
   Sparkles,
   ShoppingBag,
-  Aperture,
   User,
   Swords,
   Star,

@@ -34,7 +34,6 @@ export type Prompt = {
 export const CATEGORIES = [
   { name: "All", icon: "Sparkles" },
   { name: "E-commerce", icon: "ShoppingBag" },
-  { name: "Photo Editing", icon: "Aperture" },
   { name: "Portrait & Avatar", icon: "User" },
   { name: "Character Design", icon: "Swords" },
   { name: "Anime & Cartoon", icon: "Star" },
@@ -285,7 +284,6 @@ export async function getCategories(): Promise<{ name: string; icon: string; slu
   return [
     { name: "All", icon: "Sparkles", slug: "all", description: "All prompts from our community" },
     { name: "E-commerce", icon: "ShoppingBag", slug: "ecommerce", description: "Professional product photography and commercial visual assets" },
-    { name: "Photo Editing", icon: "Aperture", slug: "photo-editing", description: "Prompts for touch-ups, background removal, and enhancements" },
     { name: "Portrait & Avatar", icon: "User", slug: "portrait-avatar", description: "Photorealistic portraits and stylized avatars" },
     { name: "Character Design", icon: "Swords", slug: "character-design", description: "Concept art, game characters, and warriors" },
     { name: "Anime & Cartoon", icon: "Star", slug: "anime-cartoon", description: "Ghibli style, classic anime, and modern cartoons" },

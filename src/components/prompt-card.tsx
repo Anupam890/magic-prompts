@@ -47,7 +47,11 @@ export function PromptCard({
 
   const copy = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(prompt.prompt);
+    try {
+      if (typeof window !== "undefined" && navigator?.clipboard?.writeText) {
+        navigator.clipboard.writeText(prompt.prompt).catch(() => {});
+      }
+    } catch (err) {}
     toast.success("Prompt copied", { description: prompt.title });
     incrementPromptCopies(prompt.id);
   };
@@ -72,9 +76,7 @@ export function PromptCard({
           alt={prompt.title}
           loading="lazy"
           onLoad={() => setLoaded(true)}
-          className={`w-full h-auto block transition-all duration-700 group-hover:scale-[1.03] ${
-            loaded ? "opacity-100" : "opacity-0"
-          }`}
+          className="w-full h-auto block transition-all duration-700 group-hover:scale-[1.03]"
         />
 
         {/* Skeleton placeholder while loading */}

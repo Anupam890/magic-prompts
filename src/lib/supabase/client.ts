@@ -132,25 +132,35 @@ class MockSupabaseAuth {
   }
 }
 
-// Instantiate client
-export const supabase =
-  supabaseUrl && supabaseAnonKey
-    ? createBrowserClient(supabaseUrl, supabaseAnonKey)
-    : (new Proxy(
-        {},
-        {
-          get(target, prop) {
-            if (prop === "auth") {
-              return new MockSupabaseAuth();
-            }
-            return () => {
-              console.warn(
-                `Supabase client properties like '${String(
-                  prop,
-                )}' are mocked. Please define NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment.`,
-              );
-              return Promise.resolve({ data: null, error: null });
-            };
-          },
-        },
-      ) as any);
+// Instantiate resilient client that never throws on Vercel deployments
+function createResilientSupabaseClient() {
+  if (supabaseUrl && supabaseAnonKey) {
+    try {
+      // Validate that URL is well-formed
+      new URL(supabaseUrl);
+      return createBrowserClient(supabaseUrl, supabaseAnonKey);
+    } catch (e) {
+      console.warn("Invalid Supabase URL configured, using resilient mock client fallback:", e);
+    }
+  }
+
+  let mockAuthInstance: MockSupabaseAuth | null = null;
+  return new Proxy(
+    {},
+    {
+      get(target, prop) {
+        if (prop === "auth") {
+          if (!mockAuthInstance) {
+            mockAuthInstance = new MockSupabaseAuth();
+          }
+          return mockAuthInstance;
+        }
+        return () => {
+          return Promise.resolve({ data: [], error: null });
+        };
+      },
+    }
+  ) as any;
+}
+
+export const supabase = createResilientSupabaseClient();

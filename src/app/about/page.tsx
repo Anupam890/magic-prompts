@@ -1,5 +1,6 @@
 "use client";
 
+import { triggerPWAInstall } from "@/lib/pwa-installer";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -43,23 +44,8 @@ export default function AboutPage() {
     return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
   }, []);
 
-  const handleInstallApp = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === "accepted") {
-        toast.success("Thank you for installing Magic Prompts!");
-        setIsInstalled(true);
-      }
-      setDeferredPrompt(null);
-    } else if (isInstalled) {
-      toast.info("Magic Prompts App is already installed on your device!");
-    } else {
-      // Direct instructions fallback
-      toast.info("Install Magic Prompts as App", {
-        description: "Click the browser menu (⋮ or ⬆) and select 'Install Magic Prompts' or 'Add to Home Screen'.",
-      });
-    }
+  const handleInstallApp = () => {
+    triggerPWAInstall();
   };
 
   const STATS = [

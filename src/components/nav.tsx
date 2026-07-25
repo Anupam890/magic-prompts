@@ -14,6 +14,8 @@ import {
   Sparkles,
   Plus,
   Bookmark,
+  Scan,
+  Layers,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useTheme } from "@/app/providers";
@@ -31,6 +33,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "motion/react";
 import { SubmitPromptModal } from "@/components/submit-prompt-modal";
+import { ImageToPromptModal } from "@/components/image-to-prompt-modal";
 import { SearchModal } from "@/components/search-modal";
 import { PromptDetail } from "@/components/prompt-detail";
 import { type Prompt } from "@/lib/prompts-data";
@@ -42,6 +45,7 @@ export function Nav() {
   const [user, setUser] = useState<any>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [submitModalOpen, setSubmitModalOpen] = useState(false);
+  const [imageToPromptOpen, setImageToPromptOpen] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [selectedSearchPrompt, setSelectedSearchPrompt] = useState<Prompt | null>(null);
 
@@ -205,43 +209,56 @@ export function Nav() {
                   AI Tools
                   <ChevronDown className="h-3.5 w-3.5 opacity-60 transition-transform duration-200" />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-64">
-                  <DropdownMenuLabel>Prompting Generators</DropdownMenuLabel>
+                <DropdownMenuContent align="start" className="w-72">
+                  <DropdownMenuLabel className="flex items-center justify-between text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                    <span>AI PROMPTING TOOLS</span>
+                    <span className="text-[10px] text-purple-400 font-mono">v2.4</span>
+                  </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/#gallery" className="flex items-start gap-2.5 w-full py-1.5 cursor-pointer">
-                      <div className="h-7 w-7 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0 mt-0.5">
-                        <Wand2 className="h-3.5 w-3.5" />
+                    <Link
+                      href="/tools/image-to-prompt"
+                      className="flex items-start gap-2.5 w-full py-2 cursor-pointer focus:bg-purple-500/10 focus:text-purple-400"
+                    >
+                      <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-500/20">
+                        <Scan className="h-4 w-4" />
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-xs font-semibold text-foreground">
-                          Midjourney Prompt Helper
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-foreground">
+                            Image to Prompt
+                          </span>
+                          <span className="rounded-full bg-purple-500/20 text-purple-400 text-[9px] font-bold px-1.5 py-0.2 uppercase tracking-wider">
+                            NEW
+                          </span>
+                        </div>
                         <span className="text-[10px] text-muted-foreground leading-tight">
-                          Inject luxury photographic triggers
+                          Reverse engineer prompts from artwork
                         </span>
                       </div>
                     </Link>
                   </DropdownMenuItem>
+
                   <DropdownMenuItem asChild>
-                    <Link href="/#gallery" className="flex items-start gap-2.5 w-full py-1.5 cursor-pointer">
-                      <div className="h-7 w-7 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0 mt-0.5">
-                        <Sparkles className="h-3.5 w-3.5" />
+                    <Link
+                      href="/tools/background-remover"
+                      className="flex items-start gap-2.5 w-full py-2 cursor-pointer focus:bg-purple-500/10 focus:text-purple-400"
+                    >
+                      <div className="h-8 w-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0 mt-0.5 border border-purple-500/20">
+                        <Layers className="h-4 w-4" />
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-xs font-semibold text-foreground">Flux Enhancer</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight">Add granular texture modifiers</span>
-                      </div>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/#gallery" className="flex items-start gap-2.5 w-full py-1.5 cursor-pointer">
-                      <div className="h-7 w-7 rounded-lg bg-fuchsia-500/10 text-fuchsia-500 flex items-center justify-center shrink-0 mt-0.5">
-                        <Command className="h-3.5 w-3.5" />
-                      </div>
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-xs font-semibold text-foreground">Prompt Optimizer</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight">Clean and compile messy text</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-foreground">
+                            Background Remover
+                          </span>
+                          <span className="rounded-full bg-purple-500/20 text-purple-400 text-[9px] font-bold px-1.5 py-0.2 uppercase tracking-wider">
+                            NEW
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground leading-tight">
+                          Isolate subject & remove image backgrounds
+                        </span>
                       </div>
                     </Link>
                   </DropdownMenuItem>
@@ -410,28 +427,20 @@ export function Nav() {
                     AI Tools
                   </div>
                   <Link
-                    href="/#gallery"
+                    href="/tools/image-to-prompt"
                     onClick={() => setMobileOpen(false)}
                     className="flex flex-col items-start gap-0.5 rounded-xl px-4 py-3 hover:bg-white/[0.04] transition"
                   >
-                    <span className="text-sm font-medium">Midjourney Prompt Helper</span>
-                    <span className="text-[11px] text-muted-foreground">Inject luxury photographic triggers</span>
+                    <span className="text-sm font-medium">Image to Prompt</span>
+                    <span className="text-[11px] text-muted-foreground">Reverse engineer prompts from artwork</span>
                   </Link>
                   <Link
-                    href="/#gallery"
+                    href="/tools/background-remover"
                     onClick={() => setMobileOpen(false)}
                     className="flex flex-col items-start gap-0.5 rounded-xl px-4 py-3 hover:bg-white/[0.04] transition"
                   >
-                    <span className="text-sm font-medium">Flux Enhancer</span>
-                    <span className="text-[11px] text-muted-foreground">Add granular texture modifiers</span>
-                  </Link>
-                  <Link
-                    href="/#gallery"
-                    onClick={() => setMobileOpen(false)}
-                    className="flex flex-col items-start gap-0.5 rounded-xl px-4 py-3 hover:bg-white/[0.04] transition"
-                  >
-                    <span className="text-sm font-medium">Prompt Optimizer</span>
-                    <span className="text-[11px] text-muted-foreground">Clean and compile messy text</span>
+                    <span className="text-sm font-medium">Background Remover</span>
+                    <span className="text-[11px] text-muted-foreground">Isolate subject & remove image backgrounds</span>
                   </Link>
                 </div>
 
@@ -491,6 +500,12 @@ export function Nav() {
       <SubmitPromptModal
         isOpen={submitModalOpen}
         onClose={() => setSubmitModalOpen(false)}
+      />
+
+      {/* Image to Prompt Converter Modal */}
+      <ImageToPromptModal
+        isOpen={imageToPromptOpen}
+        onClose={() => setImageToPromptOpen(false)}
       />
 
       {/* Global Win+K / Ctrl+K Search Modal */}

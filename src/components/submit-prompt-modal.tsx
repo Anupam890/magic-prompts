@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Sparkles, Upload, Image as ImageIcon, Send, Loader2, Check } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { CATEGORIES, MODELS, submitUserPrompt } from "@/lib/prompts-data";
@@ -22,10 +22,22 @@ export function SubmitPromptModal({ isOpen, onClose }: SubmitPromptModalProps) {
   const [description, setDescription] = useState("");
   const [prompt, setPrompt] = useState("");
   const [negative, setNegative] = useState("");
-  const [tagsInput, setTagsInput] = useState("");
+  const [tagsList, setTagsList] = useState<string[]>([]);
+  const [tagInputBuffer, setTagInputBuffer] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [imageRatio, setImageRatio] = useState<number>(1.25);
   const [isDragging, setIsDragging] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   const processFile = async (file: File) => {
     setUploadingImage(true);
@@ -81,10 +93,7 @@ export function SubmitPromptModal({ isOpen, onClose }: SubmitPromptModalProps) {
 
     setLoading(true);
     try {
-      const tags = tagsInput
-        .split(",")
-        .map((t) => t.trim().toLowerCase())
-        .filter(Boolean);
+      const finalTags = Array.from(new Set([...tagsList, tagInputBuffer.trim().replace(/^#/, "")].filter(Boolean)));
 
       let ratio = 1.25;
       if (aspect === "16:9") ratio = 0.56;
@@ -99,7 +108,7 @@ export function SubmitPromptModal({ isOpen, onClose }: SubmitPromptModalProps) {
         description: description || title,
         prompt,
         negative,
-        tags: tags.length > 0 ? tags : ["community", category.toLowerCase()],
+        tags: finalTags.length > 0 ? finalTags : ["community", category.toLowerCase()],
         image: imageUrl,
         ratio,
       });
@@ -114,7 +123,8 @@ export function SubmitPromptModal({ isOpen, onClose }: SubmitPromptModalProps) {
       setNegative("");
       setDescription("");
       setImageUrl("");
-      setTagsInput("");
+      setTagsList([]);
+      setTagInputBuffer("");
       onClose();
     } catch (err: any) {
       toast.error(err?.message || "Failed to submit prompt. Please try again.");
@@ -132,22 +142,25 @@ export function SubmitPromptModal({ isOpen, onClose }: SubmitPromptModalProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md"
+            className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md cursor-pointer"
             onClick={onClose}
           />
 
-          {/* Modal Dialog */}
-          <div className="fixed inset-0 z-[101] flex items-center justify-center p-4 overflow-y-auto">
+          {/* Modal Dialog Container */}
+          <div
+            className="fixed inset-0 z-[101] flex items-center justify-center p-3 sm:p-4 cursor-pointer"
+            onClick={onClose}
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative w-full max-w-2xl bg-white dark:bg-[#0f0b1e] border border-black/10 dark:border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl overflow-hidden my-8"
+              className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto overflow-x-hidden bg-zinc-950 border border-white/10 rounded-sm p-4 sm:p-6 md:p-8 shadow-2xl my-auto cursor-default text-foreground"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Top ambient glow */}
-              <div className="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-purple-600/20 blur-3xl pointer-events-none" />
+              <div className="absolute top-0 right-0 h-48 w-48 rounded-full bg-purple-600/20 blur-3xl pointer-events-none" />
 
               {/* Close Button */}
               <button
@@ -176,8 +189,8 @@ export function SubmitPromptModal({ isOpen, onClose }: SubmitPromptModalProps) {
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Title */}
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                    Prompt Title *
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1.5">
+                    PROMPT TITLE *
                   </label>
                   <input
                     type="text"
@@ -185,20 +198,20 @@ export function SubmitPromptModal({ isOpen, onClose }: SubmitPromptModalProps) {
                     placeholder="e.g. Neon Cyberpunk Samurai Portrait"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full rounded-2xl glass px-4 py-2.5 text-sm outline-none border border-black/5 dark:border-white/10 focus:border-purple-500 transition"
+                    className="w-full rounded-sm bg-zinc-900 px-4 py-2.5 text-xs outline-none border border-white/10 focus:border-purple-500 transition text-white placeholder:text-zinc-600"
                   />
                 </div>
 
                 {/* Grid: Category & Model */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                      Category *
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1.5">
+                      CATEGORY *
                     </label>
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
-                      className="w-full rounded-2xl glass px-4 py-2.5 text-sm outline-none border border-black/5 dark:border-white/10 focus:border-purple-500 transition bg-background text-foreground cursor-pointer [&>option]:bg-white [&>option]:text-slate-900 dark:[&>option]:bg-[#0f0b1e] dark:[&>option]:text-white"
+                      className="w-full rounded-sm bg-zinc-900 px-4 py-2.5 text-xs outline-none border border-white/10 focus:border-purple-500 transition text-white cursor-pointer [&>option]:bg-zinc-950 [&>option]:text-white"
                     >
                       {CATEGORIES.filter((c) => c.name !== "All").map((c) => (
                         <option key={c.name} value={c.name}>
@@ -209,13 +222,13 @@ export function SubmitPromptModal({ isOpen, onClose }: SubmitPromptModalProps) {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                      AI Model *
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1.5">
+                      AI MODEL *
                     </label>
                     <select
                       value={model}
                       onChange={(e) => setModel(e.target.value)}
-                      className="w-full rounded-2xl glass px-4 py-2.5 text-sm outline-none border border-black/5 dark:border-white/10 focus:border-purple-500 transition bg-background text-foreground cursor-pointer [&>option]:bg-white [&>option]:text-slate-900 dark:[&>option]:bg-[#0f0b1e] dark:[&>option]:text-white"
+                      className="w-full rounded-sm bg-zinc-900 px-4 py-2.5 text-xs outline-none border border-white/10 focus:border-purple-500 transition text-white cursor-pointer [&>option]:bg-zinc-950 [&>option]:text-white"
                     >
                       {MODELS.map((m) => (
                         <option key={m} value={m}>
@@ -229,13 +242,13 @@ export function SubmitPromptModal({ isOpen, onClose }: SubmitPromptModalProps) {
                 {/* Aspect Ratio & Image URL */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                      Aspect Ratio
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1.5">
+                      ASPECT RATIO
                     </label>
                     <select
                       value={aspect}
                       onChange={(e) => setAspect(e.target.value)}
-                      className="w-full rounded-2xl glass px-4 py-2.5 text-sm outline-none border border-black/5 dark:border-white/10 focus:border-purple-500 transition bg-background text-foreground cursor-pointer [&>option]:bg-white [&>option]:text-slate-900 dark:[&>option]:bg-[#0f0b1e] dark:[&>option]:text-white"
+                      className="w-full rounded-sm bg-zinc-900 px-4 py-2.5 text-xs outline-none border border-white/10 focus:border-purple-500 transition text-white cursor-pointer [&>option]:bg-zinc-950 [&>option]:text-white"
                     >
                       <option value="4:5">4:5 (Portrait)</option>
                       <option value="16:9">16:9 (Landscape)</option>
@@ -245,19 +258,19 @@ export function SubmitPromptModal({ isOpen, onClose }: SubmitPromptModalProps) {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                      Artwork Image *
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1.5">
+                      ARTWORK IMAGE *
                     </label>
                     <div
                       onDragOver={handleDragOver}
                       onDragLeave={handleDragLeave}
                       onDrop={handleDrop}
-                      className={`relative border-2 border-dashed rounded-3xl p-6 text-center transition duration-300 cursor-pointer flex flex-col items-center justify-center min-h-[140px] ${
+                      className={`relative border-2 border-dashed rounded-sm p-4 sm:p-6 text-center transition duration-300 cursor-pointer flex flex-col items-center justify-center min-h-[120px] ${
                         isDragging
                           ? "border-purple-500 bg-purple-500/15 scale-[1.01]"
                           : imageUrl
                           ? "border-purple-500/40 bg-purple-500/5"
-                          : "border-black/10 dark:border-white/10 glass hover:border-purple-500/50"
+                          : "border-white/10 bg-zinc-900/60 hover:border-purple-500/50"
                       }`}
                     >
                       <input
@@ -279,32 +292,32 @@ export function SubmitPromptModal({ isOpen, onClose }: SubmitPromptModalProps) {
                             <img
                               src={imageUrl}
                               alt="Preview"
-                              className="h-16 w-16 rounded-none object-cover border border-white/10 shadow-md"
+                              className="h-14 w-14 rounded-sm object-cover border border-white/10 shadow-md"
                             />
                             <div className="text-left">
                               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-400">
                                 <Check className="h-4 w-4 text-green-400" /> Artwork Uploaded
                               </span>
-                              <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1 max-w-[220px]">
+                              <p className="text-[11px] text-zinc-400 mt-0.5 line-clamp-1 max-w-[220px]">
                                 Ready for submission
                               </p>
                             </div>
                           </div>
-                          <span className="text-xs font-semibold rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 px-3.5 py-1.5 hover:bg-purple-500/20 transition shrink-0">
+                          <span className="text-xs font-semibold rounded-sm bg-purple-500/10 text-purple-400 border border-purple-500/20 px-3.5 py-1.5 hover:bg-purple-500/20 transition shrink-0">
                             Change File
                           </span>
                         </div>
                       ) : (
-                        <div className="flex flex-col items-center justify-center py-3 gap-2.5">
-                          <div className="h-12 w-12 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center shadow-inner">
-                            <Upload className="h-6 w-6" />
+                        <div className="flex flex-col items-center justify-center py-2 gap-2">
+                          <div className="h-10 w-10 rounded-sm bg-purple-500/10 text-purple-400 flex items-center justify-center shadow-inner border border-purple-500/20">
+                            <Upload className="h-5 w-5" />
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-foreground">
+                            <p className="text-xs font-bold text-white">
                               Drag & drop artwork image here
                             </p>
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              or <span className="text-purple-400 font-semibold underline">browse file from your computer</span> (PNG, JPG, WEBP)
+                            <p className="text-[11px] text-zinc-400 mt-0.5">
+                              or <span className="text-purple-400 font-semibold underline">browse file from your computer</span>
                             </p>
                           </div>
                         </div>
@@ -315,14 +328,14 @@ export function SubmitPromptModal({ isOpen, onClose }: SubmitPromptModalProps) {
 
                 {/* Image Preview if provided */}
                 {imageUrl && (
-                  <div className="relative h-28 w-full rounded-2xl overflow-hidden border border-white/10 bg-black/20">
+                  <div className="relative h-28 w-full rounded-sm overflow-hidden border border-white/10 bg-black/20">
                     <img
                       src={imageUrl}
                       alt="Preview"
                       className="h-full w-full object-cover"
                       onError={() => toast.error("Invalid image URL")}
                     />
-                    <div className="absolute bottom-2 left-2 rounded-lg bg-black/60 px-2 py-0.5 text-[10px] text-white backdrop-blur-md">
+                    <div className="absolute bottom-2 left-2 rounded-sm bg-black/60 px-2 py-0.5 text-[10px] text-white backdrop-blur-md">
                       Preview
                     </div>
                   </div>
@@ -330,8 +343,8 @@ export function SubmitPromptModal({ isOpen, onClose }: SubmitPromptModalProps) {
 
                 {/* Prompt Text */}
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                    Prompt Text *
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1.5">
+                    PROMPT TEXT *
                   </label>
                   <textarea
                     required
@@ -339,51 +352,79 @@ export function SubmitPromptModal({ isOpen, onClose }: SubmitPromptModalProps) {
                     placeholder="Enter full detailed AI prompt string..."
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
-                    className="w-full rounded-2xl glass p-4 text-sm outline-none border border-black/5 dark:border-white/10 focus:border-purple-500 transition resize-none"
+                    className="w-full rounded-sm bg-zinc-900 p-3.5 text-xs outline-none border border-white/10 focus:border-purple-500 transition resize-none text-white placeholder:text-zinc-600"
                   />
                 </div>
 
                 {/* Negative Prompt */}
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                    Negative Prompt (Optional)
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1.5">
+                    NEGATIVE PROMPT (OPTIONAL)
                   </label>
                   <input
                     type="text"
                     placeholder="blurry, low quality, watermark, text"
                     value={negative}
                     onChange={(e) => setNegative(e.target.value)}
-                    className="w-full rounded-2xl glass px-4 py-2.5 text-sm outline-none border border-black/5 dark:border-white/10 focus:border-purple-500 transition"
+                    className="w-full rounded-sm bg-zinc-900 px-4 py-2.5 text-xs outline-none border border-white/10 focus:border-purple-500 transition text-white placeholder:text-zinc-600"
                   />
                 </div>
 
                 {/* Tags */}
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                    Tags (Comma separated)
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1.5 flex items-center justify-between">
+                    <span>TAGS (#TAG + ENTER)</span>
+                    <span className="text-[10px] text-purple-400 font-mono">Press Enter or Comma</span>
                   </label>
-                  <input
-                    type="text"
-                    placeholder="cyberpunk, portrait, neon, 8k"
-                    value={tagsInput}
-                    onChange={(e) => setTagsInput(e.target.value)}
-                    className="w-full rounded-2xl glass px-4 py-2.5 text-sm outline-none border border-black/5 dark:border-white/10 focus:border-purple-500 transition"
-                  />
+                  <div className="min-h-[46px] p-2 rounded-sm bg-zinc-900 border border-white/10 focus-within:border-purple-500 flex flex-wrap items-center gap-1.5 transition">
+                    {tagsList.map((t, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center gap-1 bg-purple-500/10 text-purple-300 text-xs font-semibold px-2.5 py-1 rounded-sm border border-purple-500/20"
+                      >
+                        #{t}
+                        <button
+                          type="button"
+                          onClick={() => setTagsList((prev) => prev.filter((_, i) => i !== idx))}
+                          className="hover:text-red-500 transition p-0.5 cursor-pointer"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                    <input
+                      type="text"
+                      placeholder={tagsList.length === 0 ? "Type #tag and press Enter..." : "Add tag..."}
+                      value={tagInputBuffer}
+                      onChange={(e) => setTagInputBuffer(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === ",") {
+                          e.preventDefault();
+                          const cleaned = tagInputBuffer.trim().replace(/^#/, "");
+                          if (cleaned && !tagsList.includes(cleaned)) {
+                            setTagsList((prev) => [...prev, cleaned]);
+                            setTagInputBuffer("");
+                          }
+                        }
+                      }}
+                      className="flex-1 bg-transparent px-2 py-1 text-xs outline-none min-w-[140px] text-white placeholder:text-zinc-600"
+                    />
+                  </div>
                 </div>
 
                 {/* Footer Buttons */}
-                <div className="pt-4 flex items-center justify-end gap-3">
+                <div className="pt-4 flex items-center justify-end gap-3 border-t border-white/5">
                   <button
                     type="button"
                     onClick={onClose}
-                    className="rounded-2xl glass px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition"
+                    className="rounded-sm bg-zinc-900 px-5 py-2.5 text-xs font-semibold text-zinc-400 hover:text-white transition"
                   >
-                    Cancel
+                    CANCEL
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm px-6 py-2.5 shadow-lg shadow-purple-900/30 transition-all hover:scale-[1.02] disabled:opacity-50 cursor-pointer"
+                    className="flex items-center gap-2 rounded-sm bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs px-6 py-2.5 shadow-lg shadow-purple-900/30 transition-all hover:scale-[1.02] disabled:opacity-50 cursor-pointer uppercase tracking-wider"
                   >
                     {loading ? (
                       <>

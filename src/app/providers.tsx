@@ -23,14 +23,15 @@ export function ThemeProvider({
   const [theme, setTheme] = useState<Theme>(defaultTheme);
 
   useEffect(() => {
-    const saved = localStorage.getItem(storageKey) as Theme | null;
-    if (saved) {
-      setTheme(saved);
-    } else {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-      setTheme(systemTheme);
+    try {
+      const saved = localStorage.getItem(storageKey) as Theme | null;
+      if (saved === "light" || saved === "dark") {
+        setTheme(saved);
+      } else {
+        setTheme("dark");
+      }
+    } catch (e) {
+      setTheme("dark");
     }
   }, [storageKey]);
 

@@ -90,7 +90,11 @@ export function PromptDetail({ prompt, onClose }: { prompt: Prompt | null; onClo
   };
 
   const copy = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
+    try {
+      if (typeof window !== "undefined" && navigator?.clipboard?.writeText) {
+        navigator.clipboard.writeText(text).catch(() => {});
+      }
+    } catch (err) {}
     toast.success(`${label} copied`);
     if (label === "Prompt") {
       setLiveCopies((prev) => prev + 1);

@@ -283,22 +283,20 @@ export default function ProfilePage() {
             <div className="flex bg-white/[0.04] border border-black/5 dark:border-white/10 p-1.5 rounded-2xl gap-1 w-full sm:w-auto">
               <button
                 onClick={() => setActiveTab("saved")}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-semibold rounded-xl transition cursor-pointer ${
-                  activeTab === "saved"
-                    ? "bg-white text-black dark:bg-white dark:text-black shadow-md"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-semibold rounded-xl transition cursor-pointer ${activeTab === "saved"
+                  ? "bg-white text-black dark:bg-white dark:text-black shadow-md"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 <Bookmark className="h-4 w-4" />
                 All Saved ({savedPrompts.length})
               </button>
               <button
                 onClick={() => setActiveTab("boards")}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-semibold rounded-xl transition cursor-pointer ${
-                  activeTab === "boards"
-                    ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/30"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-semibold rounded-xl transition cursor-pointer ${activeTab === "boards"
+                  ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/30"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 <Layers className="h-4 w-4" />
                 Boards ({boards.length})
@@ -463,12 +461,16 @@ export default function ProfilePage() {
               className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md"
               onClick={() => setIsBoardModalOpen(false)}
             />
-            <div className="fixed inset-0 z-[101] flex items-center justify-center p-4">
+            <div
+              className="fixed inset-0 z-[101] flex items-center justify-center p-4 cursor-pointer"
+              onClick={() => setIsBoardModalOpen(false)}
+            >
               <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="relative w-full max-w-md bg-white dark:bg-[#0f0b1e] border border-black/10 dark:border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl overflow-hidden"
+                className="relative w-full max-w-md bg-white dark:bg-[#0f0b1e] border border-black/10 dark:border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl overflow-hidden cursor-default"
+                onClick={(e) => e.stopPropagation()}
               >
                 <button
                   onClick={() => setIsBoardModalOpen(false)}

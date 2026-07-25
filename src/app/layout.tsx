@@ -31,9 +31,11 @@ export const metadata: Metadata = {
   },
 };
 
+import { AnnouncementBanner } from "@/components/announcement-banner";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className="dark scroll-smooth overflow-x-hidden">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -50,16 +52,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{
             __html: `
               if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js').catch(function(err) {});
-                });
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for (var r of registrations) { r.unregister(); }
+                  });
+                } else {
+                  window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('/sw.js').catch(function(err) {});
+                  });
+                }
               }
             `,
           }}
         />
       </head>
-      <body className="antialiased bg-background text-foreground">
-        <Providers>{children}</Providers>
+      <body className="antialiased bg-background text-foreground overflow-x-hidden min-h-screen">
+        <Providers>
+          <AnnouncementBanner />
+          {children}
+        </Providers>
         <AdsterraGlobalLoader />
       </body>
     </html>

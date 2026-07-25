@@ -43,7 +43,7 @@ export function Hero() {
             New · 2,400+ curated prompts added this week
           </div>
 
-          <h1 className="font-display text-[clamp(2rem,7vw,4.5rem)] leading-[0.98] tracking-tighter font-medium text-white">
+          <h1 className="font-display text-[clamp(2rem,7vw,4.5rem)] leading-[0.98] tracking-tighter font-medium text-foreground">
             Discover Nano Banana & <br className="hidden sm:block" />
             <span className="text-gradient-aurora">AI Image Prompts</span>
           </h1>
@@ -82,8 +82,8 @@ export function Hero() {
                 <input
                   type="text"
                   readOnly
-                  placeholder="Try 'cinematic luxury watch' (Ctrl+K)... cursor-pointer"
-                  className="flex-1 min-w-0 bg-transparent text-sm placeholder:text-muted-foreground outline-none cursor-pointer"
+                  placeholder="Try 'cinematic luxury watch' (Press Ctrl+K to search)..."
+                  className="flex-1 min-w-0 bg-transparent text-sm placeholder:text-muted-foreground outline-none cursor-pointer text-foreground font-medium"
                 />
                 <button
                   type="button"

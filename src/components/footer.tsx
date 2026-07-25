@@ -5,31 +5,11 @@ import { Github, Twitter, Linkedin, Download } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { triggerPWAInstall } from "@/lib/pwa-installer";
+
 export function Footer() {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-  }, []);
-
-  const handleInstallApp = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === "accepted") {
-        toast.success("Thank you for installing Magic Prompts App!");
-      }
-      setDeferredPrompt(null);
-    } else {
-      toast.info("Install Magic Prompts as App", {
-        description: "Click your browser menu (⋮ or ⬆) and select 'Install Magic Prompts' or 'Add to Home Screen'.",
-      });
-    }
+  const handleInstallApp = () => {
+    triggerPWAInstall();
   };
 
   const cols = [

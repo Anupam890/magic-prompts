@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { Nav } from "@/components/nav";
 import { Footer } from "@/components/footer";
@@ -10,7 +10,6 @@ import { Toaster } from "@/components/ui/sonner";
 import {
   Sparkles,
   ShoppingBag,
-  Aperture,
   User,
   Swords,
   Star,
@@ -26,7 +25,6 @@ import { fetchPromptsPage, getCategories, type Prompt } from "@/lib/prompts-data
 const ICONS: Record<string, any> = {
   Sparkles,
   ShoppingBag,
-  Aperture,
   User,
   Swords,
   Star,
@@ -144,6 +142,23 @@ export function BananaClient({
   });
 
   const categoryDesc = categories.find((c) => c.slug === initialCategorySlug)?.description || "";
+  const [selectedSubTag, setSelectedSubTag] = useState<string | null>(null);
+
+  // Extract unique sub-prompt tags from current category items
+  const subPromptTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    allItems.forEach((p) => {
+      if (Array.isArray(p.tags)) {
+        p.tags.forEach((t) => tagSet.add(t.toLowerCase()));
+      }
+    });
+    return Array.from(tagSet).slice(0, 12);
+  }, [allItems]);
+
+  const displayItems = filteredItems.filter((p) => {
+    if (!selectedSubTag) return true;
+    return p.tags.some((t) => t.toLowerCase() === selectedSubTag);
+  });
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col pt-20 md:pt-24 selection:bg-purple-500/30">
@@ -224,6 +239,44 @@ export function BananaClient({
               />
             </div>
 
+            {/* Sub-Prompts Category Filter Pills */}
+            {subPromptTags.length > 0 && (
+              <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar py-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 shrink-0 flex items-center gap-1">
+                  <Sparkles className="h-3 w-3" /> Sub-Prompts:
+                </span>
+                <button
+                  onClick={() => setSelectedSubTag(null)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium shrink-0 transition cursor-pointer ${
+                    selectedSubTag === null
+                      ? "bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20"
+                      : "bg-white/[0.04] text-zinc-400 hover:text-white border border-white/5"
+                  }`}
+                >
+                  All Sub-Prompts ({filteredItems.length})
+                </button>
+                {subPromptTags.map((tag: string) => {
+                  const tagCount = allItems.filter((p) =>
+                    p.tags.some((t) => t.toLowerCase() === tag)
+                  ).length;
+                  const isActive = selectedSubTag === tag;
+                  return (
+                    <button
+                      key={tag}
+                      onClick={() => setSelectedSubTag(isActive ? null : tag)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium shrink-0 transition flex items-center gap-1 cursor-pointer ${
+                        isActive
+                          ? "bg-purple-500 text-white font-bold shadow-md shadow-purple-500/20"
+                          : "bg-white/[0.04] text-zinc-400 hover:text-white border border-white/5"
+                      }`}
+                    >
+                      #{tag} <span className="text-[10px] opacity-75 font-mono">({tagCount})</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Grid display */}
             {isLoading && allItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 md:py-20 gap-3 text-zinc-400">
@@ -232,7 +285,7 @@ export function BananaClient({
               </div>
             ) : (
               <div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
-                {filteredItems.map((p, i) => (
+                {displayItems.map((p, i) => (
                   <PromptCard key={p.id} prompt={p} onOpen={setActivePrompt} index={i} />
                 ))}
               </div>

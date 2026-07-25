@@ -6,6 +6,7 @@ import { PromptCard } from "./prompt-card";
 import { PromptDetail } from "./prompt-detail";
 import { AdsterraAd } from "./adsterra-ad";
 import { Filter, Flame, Clock, Copy, Heart, Loader2, ChevronDown, Check } from "lucide-react";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -19,9 +19,9 @@ export default function Home() {
       <main>
         <Hero />
         <Categories active={category} onChange={setCategory} />
-        <AdsterraAd type="banner728x90" className="max-w-7xl mx-auto px-4" />
+        <AdsterraAd type="banner" className="max-w-7xl mx-auto px-4" />
         <Gallery activeCategory={category} />
-        <AdsterraAd type="banner728x90" className="max-w-7xl mx-auto px-4" />
+        <AdsterraAd type="banner" className="max-w-7xl mx-auto px-4" />
         <ModelsStrip />
       </main>
       <Footer />
