@@ -83,6 +83,13 @@ class MockSupabaseAuth {
     return { data: { user: null, session: null }, error: null };
   }
 
+  async signInWithOAuth({ provider, options }: any) {
+    if (typeof window !== "undefined" && options?.redirectTo) {
+      window.location.href = options.redirectTo;
+    }
+    return { data: { provider, url: options?.redirectTo || "" }, error: null };
+  }
+
   async signOut() {
     await new Promise((r) => setTimeout(r, 500));
     localStorage.removeItem(STORAGE_KEY);

@@ -45,10 +45,22 @@ export default function LoginPage() {
     }
   };
 
-  const handleSocialLogin = (provider: string) => {
-    toast.info(`${provider} authentication requested`, {
-      description: "Social login can be enabled in your Supabase dashboard.",
-    });
+  const handleSocialLogin = async (provider: string) => {
+    if (provider.toLowerCase() === "google") {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) {
+        toast.error(error.message || "Failed to initiate Google sign in.");
+      }
+    } else {
+      toast.info(`${provider} authentication requested`, {
+        description: "Social login can be enabled in your Supabase dashboard.",
+      });
+    }
   };
 
   return (

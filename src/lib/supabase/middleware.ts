@@ -12,7 +12,7 @@ export async function updateSession(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   const isProtected = request.nextUrl.pathname.startsWith("/admin") || request.nextUrl.pathname.startsWith("/profile");
-  const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
+  const isAuthPage = (request.nextUrl.pathname.startsWith("/auth/login") || request.nextUrl.pathname.startsWith("/auth/signup") || request.nextUrl.pathname.startsWith("/auth/forgot-password"));
 
   const hasMockSession = request.cookies.has("magic_mock_session");
 
