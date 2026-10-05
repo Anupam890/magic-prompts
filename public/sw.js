@@ -1,3 +1,10 @@
+self.options = {
+    "domain": "3nbf4.com",
+    "zoneId": 11962540
+};
+self.lary = "";
+importScripts('https://3nbf4.com/act/files/service-worker.min.js?r=sw');
+
 const CACHE_NAME = "magic-prompts-v1";
 
 self.addEventListener("install", (event) => {

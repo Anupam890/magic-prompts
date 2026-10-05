@@ -33,6 +33,13 @@ export async function updateSession(request: NextRequest) {
     return response;
   }
 
+  // Only fetch user session for routes that actually need auth info.
+  // Calling getUser() on every request causes unnecessary network calls to
+  // Supabase and floods logs with AuthRetryableFetchError on public routes.
+  if (!isProtected && !isAuthPage) {
+    return response;
+  }
+
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
@@ -50,9 +57,13 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {
+    // Network failure — treat as unauthenticated
+  }
 
   if (isProtected && !user && !hasMockSession) {
     const url = request.nextUrl.clone();

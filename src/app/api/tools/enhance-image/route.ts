@@ -64,7 +64,7 @@ OUTPUT ONLY VALID JSON:
             if (firstBrace !== -1 && lastBrace !== -1) {
               try {
                 parsed = JSON.parse(rawContent.substring(firstBrace, lastBrace + 1));
-              } catch (e) {}
+              } catch (e) { }
             }
 
             return NextResponse.json({
