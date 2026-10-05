@@ -2,6 +2,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Copy, Heart, Bookmark, Share2, Eye, Sparkles, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
+import { AdsterraAd } from "./adsterra-ad";
 import {
   incrementPromptCopies,
   incrementPromptLikes,
@@ -235,6 +236,9 @@ export function PromptDetail({ prompt, onClose }: { prompt: Prompt | null; onClo
                   <Heart className={`h-4 w-4 ${isLiked ? "fill-pink-500 text-pink-500" : ""}`} />
                 </button>
               </div>
+
+              {/* Optional Configured Modal Ad Placement */}
+              <AdsterraAd placement="modal" className="my-2" />
 
               {/* Board Selector Popover */}
               {showBoardSelector && (

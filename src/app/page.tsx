@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Toaster } from "@/components/ui/sonner";
 import { Nav } from "@/components/nav";
 import { Hero } from "@/components/hero";
-import { Categories } from "@/components/categories";
 import { Gallery } from "@/components/gallery";
 import { ModelsStrip } from "@/components/models";
 import { Footer } from "@/components/footer";
@@ -17,11 +15,10 @@ export default function Home() {
     <div className="min-h-screen bg-background text-foreground overflow-x-clip">
       <Nav />
       <main>
-        <Hero />
-        <Categories active={category} onChange={setCategory} />
-        <AdsterraAd type="banner" className="max-w-7xl mx-auto px-4" />
+        <Hero onSelectCategory={setCategory} />
+        <AdsterraAd placement="below-hero" className="max-w-7xl mx-auto px-4" />
         <Gallery activeCategory={category} />
-        <AdsterraAd type="banner" className="max-w-7xl mx-auto px-4" />
+        <AdsterraAd placement="footer" className="max-w-7xl mx-auto px-4" />
         <ModelsStrip />
       </main>
       <Footer />

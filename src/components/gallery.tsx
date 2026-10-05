@@ -226,7 +226,7 @@ export function Gallery({ activeCategory }: { activeCategory: string }) {
                 {/* Insert Native Adsterra Banner Every 8 Items */}
                 {i > 0 && i % 8 === 0 && (
                   <div className="mb-4 break-inside-avoid">
-                    <AdsterraAd type="native" className="my-2" />
+                    <AdsterraAd placement="gallery" type="native" className="my-2" />
                   </div>
                 )}
               </div>

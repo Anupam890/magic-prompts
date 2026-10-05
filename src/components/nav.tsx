@@ -210,9 +210,9 @@ export function Nav() {
                   <ChevronDown className="h-3.5 w-3.5 opacity-60 transition-transform duration-200" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-72">
-                  <DropdownMenuLabel className="flex items-center justify-between text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                  <DropdownMenuLabel className="flex items-center justify-between text-xs font-bold text-muted-foreground uppercase tracking-wider">
                     <span>AI PROMPTING TOOLS</span>
-                    <span className="text-[10px] text-purple-400 font-mono">v2.4</span>
+                    <span className="text-[10px] text-purple-600 dark:text-purple-400 font-mono">v2.4</span>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>

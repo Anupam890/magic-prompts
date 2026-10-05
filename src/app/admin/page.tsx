@@ -57,6 +57,7 @@ import {
   AlertTriangle,
   Send,
   Lock,
+  Compass,
 } from "lucide-react";
 import { uploadImageFile } from "@/lib/cloudinary-client";
 import { toast } from "sonner";
@@ -358,6 +359,38 @@ export default function Admin() {
   const [isModelModalOpen, setIsModelModalOpen] = useState(false);
   const [modelName, setModelName] = useState("");
 
+  // Ad Management States
+  const [adSubTab, setAdSubTab] = useState<"monetag" | "placements" | "adsterra">("monetag");
+
+  // Monetag Ad Unit States (7 Formats)
+  const [monetagAdsEnabled, setMonetagAdsEnabled] = useState(true);
+  const [monetagMultitagCode, setMonetagMultitagCode] = useState("");
+  const [monetagMultitagEnabled, setMonetagMultitagEnabled] = useState(true);
+  const [monetagPopunderCode, setMonetagPopunderCode] = useState("");
+  const [monetagPopunderEnabled, setMonetagPopunderEnabled] = useState(true);
+  const [monetagPushCode, setMonetagPushCode] = useState("");
+  const [monetagPushEnabled, setMonetagPushEnabled] = useState(true);
+  const [monetagInpageCode, setMonetagInpageCode] = useState("");
+  const [monetagInpageEnabled, setMonetagInpageEnabled] = useState(true);
+  const [monetagVignetteCode, setMonetagVignetteCode] = useState(
+    "<script>(function(s){s.dataset.zone='11962668',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>"
+  );
+  const [monetagVignetteEnabled, setMonetagVignetteEnabled] = useState(true);
+  const [monetagDirectlinkUrl, setMonetagDirectlinkUrl] = useState("");
+  const [monetagDirectlinkEnabled, setMonetagDirectlinkEnabled] = useState(false);
+  const [monetagDirectlinkPlacement, setMonetagDirectlinkPlacement] = useState("buttons");
+
+  // Placement & Creative Routing States
+  const [placementBelowHeroEnabled, setPlacementBelowHeroEnabled] = useState(true);
+  const [placementBelowHeroType, setPlacementBelowHeroType] = useState("monetag_inpage");
+  const [placementGalleryEnabled, setPlacementGalleryEnabled] = useState(true);
+  const [placementGalleryType, setPlacementGalleryType] = useState("monetag_inpage");
+  const [placementModalEnabled, setPlacementModalEnabled] = useState(true);
+  const [placementModalType, setPlacementModalType] = useState("monetag_inpage");
+  const [placementFooterEnabled, setPlacementFooterEnabled] = useState(true);
+  const [placementFooterType, setPlacementFooterType] = useState("monetag_inpage");
+  const [customCreativeHtml, setCustomCreativeHtml] = useState("");
+
   // Adsterra Ad Unit States (5 Formats)
   const [adsterraPopunder, setAdsterraPopunder] = useState("");
   const [adsterraSmartlink, setAdsterraSmartlink] = useState("");
@@ -368,6 +401,37 @@ export default function Admin() {
 
   useEffect(() => {
     try {
+      // Monetag Settings
+      setMonetagAdsEnabled(localStorage.getItem("monetag_ads_enabled") !== "false");
+      setMonetagMultitagCode(localStorage.getItem("monetag_multitag_code") || "");
+      setMonetagMultitagEnabled(localStorage.getItem("monetag_multitag_enabled") !== "false");
+      setMonetagPopunderCode(localStorage.getItem("monetag_popunder_code") || "");
+      setMonetagPopunderEnabled(localStorage.getItem("monetag_popunder_enabled") !== "false");
+      setMonetagPushCode(localStorage.getItem("monetag_push_code") || "");
+      setMonetagPushEnabled(localStorage.getItem("monetag_push_enabled") !== "false");
+      setMonetagInpageCode(localStorage.getItem("monetag_inpage_code") || "");
+      setMonetagInpageEnabled(localStorage.getItem("monetag_inpage_enabled") !== "false");
+      setMonetagVignetteCode(
+        localStorage.getItem("monetag_vignette_code") ||
+          "<script>(function(s){s.dataset.zone='11962668',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>"
+      );
+      setMonetagVignetteEnabled(localStorage.getItem("monetag_vignette_enabled") !== "false");
+      setMonetagDirectlinkUrl(localStorage.getItem("monetag_directlink_url") || "");
+      setMonetagDirectlinkEnabled(localStorage.getItem("monetag_directlink_enabled") === "true");
+      setMonetagDirectlinkPlacement(localStorage.getItem("monetag_directlink_placement") || "buttons");
+
+      // Placement Routing
+      setPlacementBelowHeroEnabled(localStorage.getItem("ad_placement_below_hero_enabled") !== "false");
+      setPlacementBelowHeroType(localStorage.getItem("ad_placement_below_hero_type") || "monetag_inpage");
+      setPlacementGalleryEnabled(localStorage.getItem("ad_placement_gallery_enabled") !== "false");
+      setPlacementGalleryType(localStorage.getItem("ad_placement_gallery_type") || "monetag_inpage");
+      setPlacementModalEnabled(localStorage.getItem("ad_placement_modal_enabled") !== "false");
+      setPlacementModalType(localStorage.getItem("ad_placement_modal_type") || "monetag_inpage");
+      setPlacementFooterEnabled(localStorage.getItem("ad_placement_footer_enabled") !== "false");
+      setPlacementFooterType(localStorage.getItem("ad_placement_footer_type") || "monetag_inpage");
+      setCustomCreativeHtml(localStorage.getItem("ad_custom_creative_html") || "");
+
+      // Adsterra Settings
       setAdsterraPopunder(localStorage.getItem("adsterra_popunder_code") || "");
       setAdsterraSmartlink(localStorage.getItem("adsterra_smartlink_code") || "");
       setAdsterraNative(localStorage.getItem("adsterra_native_code") || "");
@@ -388,14 +452,43 @@ export default function Admin() {
   const handleSaveAdSettings = (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Save Monetag
+      localStorage.setItem("monetag_ads_enabled", String(monetagAdsEnabled));
+      localStorage.setItem("monetag_multitag_code", monetagMultitagCode);
+      localStorage.setItem("monetag_multitag_enabled", String(monetagMultitagEnabled));
+      localStorage.setItem("monetag_popunder_code", monetagPopunderCode);
+      localStorage.setItem("monetag_popunder_enabled", String(monetagPopunderEnabled));
+      localStorage.setItem("monetag_push_code", monetagPushCode);
+      localStorage.setItem("monetag_push_enabled", String(monetagPushEnabled));
+      localStorage.setItem("monetag_inpage_code", monetagInpageCode);
+      localStorage.setItem("monetag_inpage_enabled", String(monetagInpageEnabled));
+      localStorage.setItem("monetag_vignette_code", monetagVignetteCode);
+      localStorage.setItem("monetag_vignette_enabled", String(monetagVignetteEnabled));
+      localStorage.setItem("monetag_directlink_url", monetagDirectlinkUrl);
+      localStorage.setItem("monetag_directlink_enabled", String(monetagDirectlinkEnabled));
+      localStorage.setItem("monetag_directlink_placement", monetagDirectlinkPlacement);
+
+      // Save Placements & Custom Creatives
+      localStorage.setItem("ad_placement_below_hero_enabled", String(placementBelowHeroEnabled));
+      localStorage.setItem("ad_placement_below_hero_type", placementBelowHeroType);
+      localStorage.setItem("ad_placement_gallery_enabled", String(placementGalleryEnabled));
+      localStorage.setItem("ad_placement_gallery_type", placementGalleryType);
+      localStorage.setItem("ad_placement_modal_enabled", String(placementModalEnabled));
+      localStorage.setItem("ad_placement_modal_type", placementModalType);
+      localStorage.setItem("ad_placement_footer_enabled", String(placementFooterEnabled));
+      localStorage.setItem("ad_placement_footer_type", placementFooterType);
+      localStorage.setItem("ad_custom_creative_html", customCreativeHtml);
+
+      // Save Adsterra
       localStorage.setItem("adsterra_popunder_code", adsterraPopunder);
       localStorage.setItem("adsterra_smartlink_code", adsterraSmartlink);
       localStorage.setItem("adsterra_native_code", adsterraNative);
       localStorage.setItem("adsterra_socialbar_code", adsterraSocialBar);
       localStorage.setItem("adsterra_banner_code", adsterraBanner);
       localStorage.setItem("adsterra_ads_enabled", String(adsEnabled));
-      toast.success("All 5 Adsterra Ad Formats saved & published live!");
-      addAuditLog("SETTINGS_UPDATED", "Updated Adsterra Ad scripts");
+
+      toast.success("Monetag & Ad Placement settings saved & published live!");
+      addAuditLog("SETTINGS_UPDATED", "Updated Monetag & Ad placement settings");
     } catch (e) {
       toast.error("Failed to save ad settings.");
     }
@@ -929,7 +1022,7 @@ export default function Admin() {
                   { id: "users", label: "User Management", Icon: Users, badge: profiles.length },
                   { id: "categories", label: "Categories", Icon: Layers, badge: categories.length },
                   { id: "models", label: "AI Models", Icon: Cpu, badge: models.length },
-                  { id: "ads", label: "Adsterra Ads", Icon: Megaphone, live: true },
+                  { id: "ads", label: "Monetag & Ads", Icon: Megaphone, live: true },
                   { id: "seo", label: "SEO & Banner", Icon: Globe },
                   { id: "backups", label: "Backups & Exports", Icon: Database },
                 ].map((item: any) => (
@@ -996,7 +1089,7 @@ export default function Admin() {
                 { id: "users", label: "User Roles", Icon: Users, badge: profiles.length },
                 { id: "categories", label: "Categories", Icon: Layers, badge: categories.length },
                 { id: "models", label: "AI Models", Icon: Cpu, badge: models.length },
-                { id: "ads", label: "Adsterra Ads", Icon: Megaphone, live: true },
+                { id: "ads", label: "Monetag & Ads", Icon: Megaphone, live: true },
                 { id: "seo", label: "SEO & Banner", Icon: Globe },
                 { id: "backups", label: "Backups & Data", Icon: Database },
               ].map((item: any) => (
@@ -2150,103 +2243,632 @@ export default function Admin() {
             )}
 
             {/* -------------------------------------------------------------
-                ADSTERRA ADS MANAGEMENT
+                MONETAG & ADSTERRA MONETIZATION MANAGEMENT & PLACEMENT ROUTING
                 ------------------------------------------------------------- */}
             {activeTab === "ads" && (
-              <div className="space-y-6 max-w-4xl bg-white dark:bg-[#12131A] rounded-3xl p-5 sm:p-8 border border-slate-200/80 dark:border-slate-800/80 shadow-sm">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-6">
+              <div className="space-y-6 max-w-5xl bg-white dark:bg-[#12131A] rounded-3xl p-5 sm:p-8 border border-slate-200/80 dark:border-slate-800/80 shadow-sm">
+                {/* Header with Master Switches */}
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-6">
                   <div>
                     <div className="flex items-center gap-2">
-                      <Megaphone className="h-5 w-5 text-amber-500" />
-                      <h2 className="font-display text-xl sm:text-2xl font-bold">Adsterra Ads Network</h2>
+                      <Megaphone className="h-5 w-5 text-purple-600" />
+                      <h2 className="font-display text-xl sm:text-2xl font-bold">Ad Monetization & Creative Routing</h2>
                     </div>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                      Manage your website monetization scripts and ad placements.
+                      Configure Monetag ad formats, customize where ads appear across the site, or route Adsterra scripts.
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3 bg-slate-100 dark:bg-slate-900 p-3 rounded-2xl self-start sm:self-auto">
-                    <span className="text-xs font-semibold">Enable Ads:</span>
-                    <button
-                      type="button"
-                      onClick={() => setAdsEnabled((prev) => !prev)}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                        adsEnabled ? "bg-amber-500" : "bg-slate-400 dark:bg-slate-800"
-                      }`}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
-                          adsEnabled ? "translate-x-5" : "translate-x-0"
+                  <div className="flex flex-wrap items-center gap-3">
+                    {/* Monetag Master Switch */}
+                    <div className="flex items-center gap-2.5 bg-purple-50 dark:bg-purple-950/40 border border-purple-200/60 dark:border-purple-800/60 px-3 py-2 rounded-2xl">
+                      <span className="text-xs font-bold text-purple-950 dark:text-purple-300">Monetag:</span>
+                      <button
+                        type="button"
+                        onClick={() => setMonetagAdsEnabled((prev) => !prev)}
+                        className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                          monetagAdsEnabled ? "bg-purple-600" : "bg-slate-300 dark:bg-slate-700"
                         }`}
-                      />
-                    </button>
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
+                            monetagAdsEnabled ? "translate-x-5" : "translate-x-0"
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Adsterra Master Switch */}
+                    <div className="flex items-center gap-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-800/60 px-3 py-2 rounded-2xl">
+                      <span className="text-xs font-bold text-amber-950 dark:text-amber-300">Adsterra:</span>
+                      <button
+                        type="button"
+                        onClick={() => setAdsEnabled((prev) => !prev)}
+                        className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                          adsEnabled ? "bg-amber-500" : "bg-slate-300 dark:bg-slate-700"
+                        }`}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
+                            adsEnabled ? "translate-x-5" : "translate-x-0"
+                          }`}
+                        />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
+                {/* Sub-Tabs: Monetag vs Placements vs Adsterra */}
+                <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3 overflow-x-auto">
+                  <button
+                    type="button"
+                    onClick={() => setAdSubTab("monetag")}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                      adSubTab === "monetag"
+                        ? "bg-purple-600 text-white shadow-md shadow-purple-600/25"
+                        : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-foreground"
+                    }`}
+                  >
+                    <Zap className="h-3.5 w-3.5 text-amber-300" />
+                    <span>Monetag Formats (7 Ad Formats)</span>
+                    <span className="px-1.5 py-0.2 rounded-md bg-white/20 text-[10px] font-bold">Recommended</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setAdSubTab("placements")}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                      adSubTab === "placements"
+                        ? "bg-purple-600 text-white shadow-md shadow-purple-600/25"
+                        : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-foreground"
+                    }`}
+                  >
+                    <LayoutGrid className="h-3.5 w-3.5 text-cyan-400" />
+                    <span>Ad Placements & Creative Routing</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setAdSubTab("adsterra")}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                      adSubTab === "adsterra"
+                        ? "bg-purple-600 text-white shadow-md shadow-purple-600/25"
+                        : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-foreground"
+                    }`}
+                  >
+                    <Megaphone className="h-3.5 w-3.5 text-amber-500" />
+                    <span>Adsterra Network</span>
+                  </button>
+                </div>
+
                 <form onSubmit={handleSaveAdSettings} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase">Popunder Script</label>
-                      <textarea
-                        rows={3}
-                        value={adsterraPopunder}
-                        onChange={(e) => setAdsterraPopunder(e.target.value)}
-                        placeholder="Paste Popunder script..."
-                        className="w-full rounded-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-3 text-xs font-mono outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"
-                      />
+                  {/* =========================================================
+                      SUB-TAB 1: MONETAG AD FORMATS
+                      ========================================================= */}
+                  {adSubTab === "monetag" && (
+                    <div className="space-y-6">
+                      <div className="bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-indigo-500/10 p-4 rounded-2xl border border-purple-500/20 text-xs text-slate-600 dark:text-slate-300 leading-relaxed flex items-start gap-3">
+                        <ShieldCheck className="h-5 w-5 text-purple-500 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-bold text-foreground">Monetag Integration Status: Verified (sw.js in public/)</p>
+                          <p className="mt-0.5 text-muted-foreground text-[11px]">
+                            MultiTag automatically handles Popunders, Push Notifications, In-Page Banners, and Interstitials using AI revenue optimization. You can enable all formats or configure each one individually below.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* 1. MultiTag (All-in-one) — Recommended */}
+                      <div className="rounded-2xl p-5 border-2 border-purple-500/30 bg-purple-500/[0.03] space-y-3 relative overflow-hidden">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-purple-500/15 pb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-600 text-white">
+                              RECOMMENDED
+                            </span>
+                            <h3 className="font-bold text-sm text-foreground">1. MultiTag (All-In-One Monetization)</h3>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground font-medium">Active:</span>
+                            <button
+                              type="button"
+                              onClick={() => setMonetagMultitagEnabled((prev) => !prev)}
+                              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                                monetagMultitagEnabled ? "bg-purple-600" : "bg-slate-300 dark:bg-slate-700"
+                              }`}
+                            >
+                              <span
+                                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
+                                  monetagMultitagEnabled ? "translate-x-4" : "translate-x-0"
+                                }`}
+                              />
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Generates the highest revenue with UX-optimized settings. Offering full ad coverage across all devices, OS, and GEOs.
+                        </p>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase">
+                            MultiTag Script Code (from Monetag Dashboard)
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={monetagMultitagCode}
+                            onChange={(e) => setMonetagMultitagCode(e.target.value)}
+                            placeholder='<script src="https://alwingulla.com/88/tag.min.js" data-zone="11962540" async data-cfasync="false"></script>'
+                            className="w-full rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-3 text-xs font-mono outline-none focus:ring-2 focus:ring-purple-600 transition"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Grid for Other 6 Formats */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {/* 2. Onclick (Popunder) */}
+                        <div className="rounded-2xl p-4 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-500">
+                                100% Fill Rate
+                              </span>
+                              <h4 className="font-bold text-xs text-foreground">2. Onclick (Popunder)</h4>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setMonetagPopunderEnabled((prev) => !prev)}
+                              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                                monetagPopunderEnabled ? "bg-purple-600" : "bg-slate-300 dark:bg-slate-700"
+                              }`}
+                            >
+                              <span
+                                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
+                                  monetagPopunderEnabled ? "translate-x-4" : "translate-x-0"
+                                }`}
+                              />
+                            </button>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            Opens in a new tab when visitors click anywhere. High CPM rates, compatible with AdSense.
+                          </p>
+                          <textarea
+                            rows={3}
+                            value={monetagPopunderCode}
+                            onChange={(e) => setMonetagPopunderCode(e.target.value)}
+                            placeholder="Paste Monetag Onclick / Popunder script..."
+                            className="w-full rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-2.5 text-xs font-mono outline-none focus:ring-2 focus:ring-purple-600 transition"
+                          />
+                        </div>
+
+                        {/* 3. Push Notifications */}
+                        <div className="rounded-2xl p-4 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-500">
+                                sw.js Ready
+                              </span>
+                              <h4 className="font-bold text-xs text-foreground">3. Push Notifications</h4>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setMonetagPushEnabled((prev) => !prev)}
+                              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                                monetagPushEnabled ? "bg-purple-600" : "bg-slate-300 dark:bg-slate-700"
+                              }`}
+                            >
+                              <span
+                                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
+                                  monetagPushEnabled ? "translate-x-4" : "translate-x-0"
+                                }`}
+                              />
+                            </button>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            Users subscribe via browser prompt. Generates steady recurring revenue without affecting Google rank.
+                          </p>
+                          <textarea
+                            rows={3}
+                            value={monetagPushCode}
+                            onChange={(e) => setMonetagPushCode(e.target.value)}
+                            placeholder="Paste Monetag Push opt-in script..."
+                            className="w-full rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-2.5 text-xs font-mono outline-none focus:ring-2 focus:ring-purple-600 transition"
+                          />
+                        </div>
+
+                        {/* 4. In-Page Push (Banner) */}
+                        <div className="rounded-2xl p-4 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-500">
+                                Native Banner
+                              </span>
+                              <h4 className="font-bold text-xs text-foreground">4. In-Page Push (Banner)</h4>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setMonetagInpageEnabled((prev) => !prev)}
+                              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                                monetagInpageEnabled ? "bg-purple-600" : "bg-slate-300 dark:bg-slate-700"
+                              }`}
+                            >
+                              <span
+                                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
+                                  monetagInpageEnabled ? "translate-x-4" : "translate-x-0"
+                                }`}
+                              />
+                            </button>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            Appears like a native floating notification with image and text. High CTR, does not take up fixed page space.
+                          </p>
+                          <textarea
+                            rows={3}
+                            value={monetagInpageCode}
+                            onChange={(e) => setMonetagInpageCode(e.target.value)}
+                            placeholder="Paste Monetag In-Page Push script..."
+                            className="w-full rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-2.5 text-xs font-mono outline-none focus:ring-2 focus:ring-purple-600 transition"
+                          />
+                        </div>
+
+                        {/* 5. Vignette Banner / Interstitial */}
+                        <div className="rounded-2xl p-4 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-500/20 text-pink-500">
+                                +65% Higher CPM
+                              </span>
+                              <h4 className="font-bold text-xs text-foreground">5. Vignette Banner & Interstitial</h4>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setMonetagVignetteEnabled((prev) => !prev)}
+                              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                                monetagVignetteEnabled ? "bg-purple-600" : "bg-slate-300 dark:bg-slate-700"
+                              }`}
+                            >
+                              <span
+                                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
+                                  monetagVignetteEnabled ? "translate-x-4" : "translate-x-0"
+                                }`}
+                              />
+                            </button>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            Clean overlay banner displayed between page clicks. 100% visible and passes through ad blockers.
+                          </p>
+                          <textarea
+                            rows={3}
+                            value={monetagVignetteCode}
+                            onChange={(e) => setMonetagVignetteCode(e.target.value)}
+                            placeholder="Paste Monetag Vignette / Interstitial script..."
+                            className="w-full rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-2.5 text-xs font-mono outline-none focus:ring-2 focus:ring-purple-600 transition"
+                          />
+                        </div>
+                      </div>
+
+                      {/* 6. Direct Link (Direct Ads) */}
+                      <div className="rounded-2xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-400">
+                              Direct Ads
+                            </span>
+                            <h4 className="font-bold text-xs text-foreground">6. Direct Link (Direct Ads URL)</h4>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setMonetagDirectlinkEnabled((prev) => !prev)}
+                            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                              monetagDirectlinkEnabled ? "bg-purple-600" : "bg-slate-300 dark:bg-slate-700"
+                            }`}
+                          >
+                            <span
+                              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
+                                monetagDirectlinkEnabled ? "translate-x-4" : "translate-x-0"
+                              }`}
+                            />
+                          </button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Direct Link leads visitors to top-converting offers. You can place it on buttons, copy actions, or custom banners.
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div className="sm:col-span-2 space-y-1">
+                            <label className="text-[10px] font-bold uppercase text-muted-foreground">Direct Link URL</label>
+                            <input
+                              type="text"
+                              value={monetagDirectlinkUrl}
+                              onChange={(e) => setMonetagDirectlinkUrl(e.target.value)}
+                              placeholder="https://3nbf4.com/direct/..."
+                              className="w-full rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-mono outline-none focus:ring-2 focus:ring-purple-600 transition"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold uppercase text-muted-foreground">Placement Trigger</label>
+                            <select
+                              value={monetagDirectlinkPlacement}
+                              onChange={(e) => setMonetagDirectlinkPlacement(e.target.value)}
+                              className="w-full rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium outline-none cursor-pointer"
+                            >
+                              <option value="buttons">Prompt Action Buttons</option>
+                              <option value="custom_banner">Custom Banner Link</option>
+                              <option value="all">Everywhere</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
                     </div>
+                  )}
 
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase">Smartlink URL</label>
-                      <textarea
-                        rows={3}
-                        value={adsterraSmartlink}
-                        onChange={(e) => setAdsterraSmartlink(e.target.value)}
-                        placeholder="Paste Smartlink URL..."
-                        className="w-full rounded-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-3 text-xs font-mono outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"
-                      />
+                  {/* =========================================================
+                      SUB-TAB 2: AD PLACEMENTS & CREATIVE ROUTING
+                      ========================================================= */}
+                  {adSubTab === "placements" && (
+                    <div className="space-y-6">
+                      <div className="bg-cyan-500/10 border border-cyan-500/20 p-4 rounded-2xl text-xs text-cyan-950 dark:text-cyan-200">
+                        <p className="font-bold">Customize Exactly Where Ads Appear on Your Site</p>
+                        <p className="text-[11px] text-cyan-800 dark:text-cyan-300/80 mt-0.5">
+                          Control visibility and assign which network format (Monetag In-Page Push, MultiTag, Adsterra Banner, or Custom HTML) renders in each spot.
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {/* Placement 1: Home Page Below Hero */}
+                        <div className="rounded-2xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <LayoutDashboard className="h-4 w-4 text-purple-500" />
+                              <h4 className="font-bold text-xs text-foreground">Home Page: Below Hero</h4>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setPlacementBelowHeroEnabled((prev) => !prev)}
+                              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                                placementBelowHeroEnabled ? "bg-purple-600" : "bg-slate-300 dark:bg-slate-700"
+                              }`}
+                            >
+                              <span
+                                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
+                                  placementBelowHeroEnabled ? "translate-x-4" : "translate-x-0"
+                                }`}
+                              />
+                            </button>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            Displayed between the redesigned Hero section and the prompt gallery.
+                          </p>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold uppercase text-muted-foreground">Assigned Ad Creative</label>
+                            <select
+                              value={placementBelowHeroType}
+                              onChange={(e) => setPlacementBelowHeroType(e.target.value)}
+                              className="w-full rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium outline-none cursor-pointer"
+                            >
+                              <option value="monetag_inpage">Monetag In-Page Push (Banner)</option>
+                              <option value="monetag_multitag">Monetag MultiTag Slot</option>
+                              <option value="adsterra_banner">Adsterra Display Banner (728x90)</option>
+                              <option value="custom">Custom HTML / Sponsor Creative</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Placement 2: Gallery Native Stream */}
+                        <div className="rounded-2xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Columns className="h-4 w-4 text-emerald-500" />
+                              <h4 className="font-bold text-xs text-foreground">Gallery: Native Feed (Every 8 Cards)</h4>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setPlacementGalleryEnabled((prev) => !prev)}
+                              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                                placementGalleryEnabled ? "bg-purple-600" : "bg-slate-300 dark:bg-slate-700"
+                              }`}
+                            >
+                              <span
+                                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
+                                  placementGalleryEnabled ? "translate-x-4" : "translate-x-0"
+                                }`}
+                              />
+                            </button>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            Blends seamlessly inside the masonry gallery between prompt cards.
+                          </p>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold uppercase text-muted-foreground">Assigned Ad Creative</label>
+                            <select
+                              value={placementGalleryType}
+                              onChange={(e) => setPlacementGalleryType(e.target.value)}
+                              className="w-full rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium outline-none cursor-pointer"
+                            >
+                              <option value="monetag_inpage">Monetag In-Page Push (Recommended)</option>
+                              <option value="adsterra_native">Adsterra Native Banner</option>
+                              <option value="custom">Custom HTML / Sponsor Creative</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Placement 3: Prompt Detail Modal */}
+                        <div className="rounded-2xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Layers className="h-4 w-4 text-pink-500" />
+                              <h4 className="font-bold text-xs text-foreground">Prompt Detail Dialog</h4>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setPlacementModalEnabled((prev) => !prev)}
+                              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                                placementModalEnabled ? "bg-purple-600" : "bg-slate-300 dark:bg-slate-700"
+                              }`}
+                            >
+                              <span
+                                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
+                                  placementModalEnabled ? "translate-x-4" : "translate-x-0"
+                                }`}
+                              />
+                            </button>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            Rendered right inside the popup modal below prompt actions for engaged users.
+                          </p>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold uppercase text-muted-foreground">Assigned Ad Creative</label>
+                            <select
+                              value={placementModalType}
+                              onChange={(e) => setPlacementModalType(e.target.value)}
+                              className="w-full rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium outline-none cursor-pointer"
+                            >
+                              <option value="monetag_inpage">Monetag In-Page Push</option>
+                              <option value="adsterra_banner">Adsterra Display Banner</option>
+                              <option value="custom">Custom HTML / Sponsor Creative</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Placement 4: Footer Banner */}
+                        <div className="rounded-2xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Compass className="h-4 w-4 text-amber-500" />
+                              <h4 className="font-bold text-xs text-foreground">Site Footer</h4>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setPlacementFooterEnabled((prev) => !prev)}
+                              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                                placementFooterEnabled ? "bg-purple-600" : "bg-slate-300 dark:bg-slate-700"
+                              }`}
+                            >
+                              <span
+                                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
+                                  placementFooterEnabled ? "translate-x-4" : "translate-x-0"
+                                }`}
+                              />
+                            </button>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            Wide banner shown right above footer copyright and links.
+                          </p>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold uppercase text-muted-foreground">Assigned Ad Creative</label>
+                            <select
+                              value={placementFooterType}
+                              onChange={(e) => setPlacementFooterType(e.target.value)}
+                              className="w-full rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium outline-none cursor-pointer"
+                            >
+                              <option value="monetag_inpage">Monetag In-Page Push</option>
+                              <option value="adsterra_banner">Adsterra Display Banner</option>
+                              <option value="custom">Custom HTML / Sponsor Creative</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Custom Creative HTML Code Editor */}
+                      <div className="rounded-2xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-bold text-xs text-foreground">Custom Creative HTML / Sponsor Banner Code</h4>
+                          <span className="text-[11px] text-purple-400 font-mono">Supports HTML, Iframe, Google AdSense, Scripts</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Paste any custom banner tag, affiliate banner, or sponsor code here. You can then route this creative to any placement above.
+                        </p>
+                        <textarea
+                          rows={4}
+                          value={customCreativeHtml}
+                          onChange={(e) => setCustomCreativeHtml(e.target.value)}
+                          placeholder='<a href="https://..." target="_blank"><img src="https://..." alt="Sponsor" /></a>'
+                          className="w-full rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-3 text-xs font-mono outline-none focus:ring-2 focus:ring-purple-600 transition"
+                        />
+                      </div>
                     </div>
+                  )}
 
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase">Native Banner Code</label>
-                      <textarea
-                        rows={3}
-                        value={adsterraNative}
-                        onChange={(e) => setAdsterraNative(e.target.value)}
-                        placeholder="Paste Native Banner script..."
-                        className="w-full rounded-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-3 text-xs font-mono outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"
-                      />
+                  {/* =========================================================
+                      SUB-TAB 3: ADSTERRA NETWORK
+                      ========================================================= */}
+                  {adSubTab === "adsterra" && (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase">
+                            Adsterra Popunder Script
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={adsterraPopunder}
+                            onChange={(e) => setAdsterraPopunder(e.target.value)}
+                            placeholder="Paste Adsterra Popunder script..."
+                            className="w-full rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-3 text-xs font-mono outline-none focus:ring-2 focus:ring-amber-500 transition"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase">
+                            Adsterra Smartlink URL
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={adsterraSmartlink}
+                            onChange={(e) => setAdsterraSmartlink(e.target.value)}
+                            placeholder="Paste Adsterra Smartlink URL..."
+                            className="w-full rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-3 text-xs font-mono outline-none focus:ring-2 focus:ring-amber-500 transition"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase">
+                            Adsterra Native Banner Code
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={adsterraNative}
+                            onChange={(e) => setAdsterraNative(e.target.value)}
+                            placeholder="Paste Native Banner script..."
+                            className="w-full rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-3 text-xs font-mono outline-none focus:ring-2 focus:ring-amber-500 transition"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase">
+                            Adsterra Social Bar Code
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={adsterraSocialBar}
+                            onChange={(e) => setAdsterraSocialBar(e.target.value)}
+                            placeholder="Paste Social Bar script..."
+                            className="w-full rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-3 text-xs font-mono outline-none focus:ring-2 focus:ring-amber-500 transition"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase">
+                          Adsterra Display Banner (728x90)
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={adsterraBanner}
+                          onChange={(e) => setAdsterraBanner(e.target.value)}
+                          placeholder="Paste Banner HTML iframe script..."
+                          className="w-full rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-3 text-xs font-mono outline-none focus:ring-2 focus:ring-amber-500 transition"
+                        />
+                      </div>
                     </div>
+                  )}
 
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase">Social Bar Code</label>
-                      <textarea
-                        rows={3}
-                        value={adsterraSocialBar}
-                        onChange={(e) => setAdsterraSocialBar(e.target.value)}
-                        placeholder="Paste Social Bar script..."
-                        className="w-full rounded-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-3 text-xs font-mono outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase">Display Banner Iframe Code</label>
-                    <textarea
-                      rows={3}
-                      value={adsterraBanner}
-                      onChange={(e) => setAdsterraBanner(e.target.value)}
-                      placeholder="Paste Banner HTML iframe script..."
-                      className="w-full rounded-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-3 text-xs font-mono outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"
-                    />
-                  </div>
-
-                  <div className="pt-4 flex justify-end">
+                  {/* Submit Button */}
+                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <p className="text-xs text-muted-foreground">
+                      Settings apply immediately to all visitors on <code className="font-mono text-purple-400">magic-prompts-nu.vercel.app</code>
+                    </p>
                     <button
                       type="submit"
-                      className="px-6 py-2.5 rounded-sm bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase tracking-wider shadow-md transition cursor-pointer"
+                      className="w-full sm:w-auto px-7 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-purple-900/30 transition hover:scale-[1.02] cursor-pointer flex items-center justify-center gap-2"
                     >
-                      Save & Activate All Ads Live
+                      <Check className="h-4 w-4" />
+                      <span>Save & Publish All Ads Live</span>
                     </button>
                   </div>
                 </form>

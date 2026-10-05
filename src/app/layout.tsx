@@ -48,6 +48,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&f[]=satoshi@400,500,700&display=swap"
         />
         <link rel="manifest" href="/manifest.json" />
+        {/* Monetag Vignette Banner Script (Zone 11962668) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(s){s.dataset.zone='11962668',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))`
+          }}
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `
